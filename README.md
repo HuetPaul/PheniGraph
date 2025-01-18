@@ -22,7 +22,7 @@ To install the library in the local environment:
 `pip install /path/to/wheelfile.whl`
 
 Then the library can be used like any other:
-`import graphique as g`
+`import phenigraph as g`
 
 ## Usage
  
