@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import annotations
-import sys
-#from unittest.mock import right
-from phenigraph.objet import *
-from phenigraph.gui import plot
-
+from phenigraph import *
 if __name__ == '__main__':
     args = sys.argv
     if len(args) > 0:
@@ -16,4 +9,3 @@ if __name__ == '__main__':
         else:
             gr = Graphique(args[1])
             plot(gr)
-

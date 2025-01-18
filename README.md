@@ -29,6 +29,11 @@ Then the library can be used like any other:
 This library has two dedicated objects : one for the signe plots : Graphique and one 
 for building multiples Graphique in a single figure : Multigraph
 
+### PLot in a commande line :
+
+To plot a Graphique or a Multigraph of filemande n in a comande line, download the file 'plot_phenigraph.py' 
+and run 'python3 plotphenigraph n'
+
 ### The Graphique object :
 #### To initialise a Graphique :
 
