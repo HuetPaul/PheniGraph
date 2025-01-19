@@ -10,6 +10,9 @@ Allows you to save a matplotlib plot in a dedicated object so that you can reuse
 
 ## Installation
 
+You can install this library directly with pip:
+'pip install phenigraph'
+
 To compile the library :
 
 In the main folder, run the command :
