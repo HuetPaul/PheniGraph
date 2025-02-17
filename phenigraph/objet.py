@@ -1,4 +1,3 @@
-
 import numpy as np
 from matplotlib import axes
 from matplotlib.collections import LineCollection
@@ -12,6 +11,7 @@ from matplotlib.colors import to_hex
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import scipy.stats as sp
+from matplotlib.pyplot import colorbar
 from scipy.interpolate import griddata
 from scipy.stats import alpha
 
@@ -20,44 +20,57 @@ ii_max = ii.max  # The maximum int numerically possible
 
 c: str = "ysqgsdkbn"  # Chain used to fill the gaps in the lists during the saving of the Graphique
 
-# Définitions couleurs :
-C1: str = '#6307ba'  # Violet / Purple
-C2: str = '#16b5fa'  # Cyan
-C3: str = '#2ad500'  # Vert clair / Light green
-C4: str = '#145507'  # vert foncé / Dark green
-C5: str = '#ff8e00'  # Orange
-C6: str = '#cb0d17'  # Rouge / Red
-C7: str = '#5694b2'  # Bleu pastel / Pastel blue
-C8: str = '#569a57'  # Vert pastel / Pastel green
-C9: str = '#b986b9'  # Lavande
-C10: str = '#c6403c'  # Rouge pastel / Pastel red
-C11: str = '#d39d5d'  # Beige
-C12: str = '#25355d'  # Bleu / Blue
-C13: str = '#fcc100'  # Jaune / Yellow
-C14: str = '#7ab5fa'  # Bleu ciel / Light blue
-C15: str = '#fc2700'  # Orange foncé / Dark orange
-C16: str = '#0fc88f'  # Bleu-Vert / Blue-Green
-C17: str = '#a8173b'  # Rouge cerise / Red
-C18: str = '#1812c4'  # Bleu foncé / Dark blue
-C19: str = "#000000"  # Noir / Black
-C20: str = "#707070"  # Gris / Grey
+#: Defaults colors :
+C1: str = '#6307ba'  #: Violet / Purple
+C2: str = '#16b5fa'  #: Cyan
+C3: str = '#2ad500'  #: Vert clair / Light green
+C4: str = '#145507'  #: vert foncé / Dark green
+C5: str = '#ff8e00'  #: Orange
+C6: str = '#cb0d17'  #: Rouge / Red
+C7: str = '#5694b2'  #: Bleu pastel / Pastel blue
+C8: str = '#569a57'  #: Vert pastel / Pastel green
+C9: str = '#b986b9'  #: Lavande
+C10: str = '#c6403c'  #: Rouge pastel / Pastel red
+C11: str = '#d39d5d'  #: Beige
+C12: str = '#25355d'  #: Bleu / Blue
+C13: str = '#fcc100'  #: Jaune / Yellow
+C14: str = '#7ab5fa'  #: Bleu ciel / Light blue
+C15: str = '#fc2700'  #: Orange foncé / Dark orange
+C16: str = '#0fc88f'  #: Bleu-Vert / Blue-Green
+C17: str = '#a8173b'  #: Rouge cerise / Red
+C18: str = '#1812c4'  #: Bleu foncé / Dark blue
+C19: str = "#000000"  #: Noir / Black
+C20: str = "#707070"  #: Gris / Grey
 
 l_colors: list[str] = [C1, C2, C4, C3, C5, C6, C7, C8, C9,
                        C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20]
 
-def linear_color_interpolation(val: np.float64 | float | list[np.float64] | list[float] | np.ndarray,
+
+def linear_color_interpolation(val: np.float64 | float | list[np.float64 | float] | np.ndarray[np.float64 | float],
                                val_min: np.float64 = - np.inf, val_max: np.float64 = np.inf,
                                col_min: str | tuple = C1, col_max: str = C2,
-                               ) -> str | list[str] | np.ndarray:
+                               ) -> str | list[str] | np.ndarray[str]:
     """
+
     Return a color/list of colors which is linearly interpolated between the two extremal colors col_min
     and col_max
-    :param col_min: color associated with the minimal value (in hexadecimal or rgba)
-    :param col_max: color associated with the maximal value (in hexadecimal or rgba)
-    :param val: the value to be interpolated
-    :param val_min: the minimal value
-    :param val_max: the maximal value
-    :return: the interpolated color(s) in hex
+
+    Parameters
+    ----------
+    val: np.float64 | float | list[np.float64 | float] | np.ndarray[np.float64 | float],
+        the value to be interpolated
+    val_min: np.float64, default = min(val)
+        the minimal value
+    val_max: np.float64, default = max(val)
+        the maximal value
+    col_min: str | tuple, optional, default=C1=#6307ba (purple)
+        color associated with the minimal value (in hexadecimal or rgba)
+    col_max: str | tuple, optional, default=C2=#16b5fa (cyan)
+        color associated with the maximal value (in hexadecimal or rgba)
+    Returns
+    -------
+    str | list[str] | np.ndarray[str]
+        the interpolated color(s) in hex
     """
     if isinstance(col_min, str):
         col_min: tuple = to_rgba(col_min)
@@ -95,8 +108,13 @@ def test_list_regular(x: list) -> list | None:
     If x is a list of lists, this function test if there size is equals.
     If there are, then it returns a list of string of the same dimensions of x.
     Then x could be turned into a ndarray and turned back after
-    :param x: the list to be tested
-    :return: the type list or None
+    Parameters
+    ----------
+    x: list
+        the list to be tested
+    Returns
+    -------
+        the type list or None
     """
     res: list = []
     dim: int = -1  # size of the sub list (-1 for scalars or strings)
@@ -115,6 +133,8 @@ def test_list_regular(x: list) -> list | None:
             res.append("double")
         elif isinstance(X, float):
             res.append("float")
+        elif isinstance(X, np.int64):
+            res.append("int64")
         elif isinstance(X, int):
             res.append("int")
         elif isinstance(X, tuple):
@@ -139,9 +159,17 @@ def test_list_regular(x: list) -> list | None:
 def get_regular_list(x: np.ndarray | list, types: np.ndarray) -> list:
     """
     Recover the original list converted by test_list_regular (if the list is regular (the result is not None))
-    :param x: the converted array
-    :param types: the types of each list's element (result of 'test_list_regular')
-    :return: the original list
+    Parameters
+    ----------
+    x: np.ndarray | list
+        the converted array
+    types: np.ndarray
+        the types of each list's element (result of 'test_list_regular')
+    Returns
+    -------
+    dict
+        the original list
+
     """
     res: list = []
     for (X, T) in zip(x, types):
@@ -157,6 +185,8 @@ def get_regular_list(x: np.ndarray | list, types: np.ndarray) -> list:
             res.append(float(X))
         elif T == "int":
             res.append(int(X))
+        elif T == "int64":
+            res.append(np.int64(X))
         elif T == "tuple":
             res.append(tuple(X))
         elif T == "array":
@@ -168,11 +198,16 @@ def get_regular_list(x: np.ndarray | list, types: np.ndarray) -> list:
 
 def list_to_dict(x: list, separator: str = "-.-") -> dict:
     """
-    x is an irregular list (containing list of different sizes)
-    return a dictionary adapted to be saved with np.saved_compressed
-    :param x: the list to be converted
-    :param separator: The string to be added between dictionary's keys if there are recursives
-    :return: the dictionary containing the list
+    Parameters
+    ----------
+    x: list
+        the list to be converted
+    separator: str, optinal, default="-.-"
+        The string to be added between dictionary's keys if there are recursives
+    Returns
+    -------
+    dict
+        the dictionary containing the list
     """
     res: dict = dict()
     types: list[list[str]] = []
@@ -186,6 +221,9 @@ def list_to_dict(x: list, separator: str = "-.-") -> dict:
         elif isinstance(x[i], float):
             res[str(i)] = x[i]
             types.append([str(i), "float"])
+        elif isinstance(x[i], np.int64):
+            res[str(i)] = x[i]
+            types.append([str(i), "int64"])
         elif isinstance(x[i], int):
             res[str(i)] = x[i]
             types.append([str(i), "int"])
@@ -233,11 +271,18 @@ def list_to_dict(x: list, separator: str = "-.-") -> dict:
 
 def dict_to_ndarray_dict(dic: dict, separator: str = "-.-") -> dict:
     """
-    Turne a dictionary containing list, ndarray, str, float, int or even others dic into a dic in the
+    Turn a dictionary containing list, ndarray, str, float, int or even others dic into a dic in the
     right form to be saved by np.save_compressed
-    :param dic: The dictionary to be transformed
-    :param separator: The string to be added between dictionary's keys if there are recursives
-    :return: the new dictionary
+    Parameters
+    ----------
+    dic: dict
+        The dictionary to be transformed
+    separator: str, optional, default="-.-"
+        The string to be added between dictionary's keys if there are recursives
+    Returns
+    -------
+    dict
+        the new dictionary
     """
     res: dict = dict()
     types: list[[str, str]] = []
@@ -250,6 +295,10 @@ def dict_to_ndarray_dict(dic: dict, separator: str = "-.-") -> dict:
         if isinstance(dic[k], str):
             res[k] = dic[k]
             types.append([k, "str"])
+            keys.append(k)
+        elif isinstance(dic[k], np.int64):
+            res[k] = dic[k]
+            types.append([k, "int64"])
             keys.append(k)
         elif isinstance(dic[k], int):
             res[k] = dic[k]
@@ -310,8 +359,15 @@ def dict_to_list(dic: dict) -> list:
     """
     Return the irregular list (A list with list of differents sizes or with dictionary(s))
     transformed by the list_to_dict function
-    :param dic: the dic to be converted
-    :return: the original list
+    Parameters
+    ----------
+    dic: dict
+        the dic to be converted
+
+    Returns
+    -------
+    list
+        the original list
     """
     if "separator" not in dic.keys():
         raise UserWarning("dic_to_list, the given dictionary doesn't contain the required separator key."
@@ -357,6 +413,9 @@ def dict_to_list(dic: dict) -> list:
         elif type_i == "float":
             res.append(float(dic[k]))
             i += 1
+        elif type_i == "int64":
+            res.append(np.int64(dic[k]))
+            i += 1
         elif type_i == "int":
             res.append(int(dic[k]))
             i += 1
@@ -387,7 +446,7 @@ def dict_to_list(dic: dict) -> list:
             loc_graph: Graphique = Graphique()
             loc_dic: dict = dict()
             i += 1
-            while  i < len(keys) and k + separator in keys[i]:
+            while i < len(keys) and k + separator in keys[i]:
                 loc_dic[keys[i][len(k) + len(separator):]] = dic[keys[i]]
                 i += 1
             loc_graph.load_dict(ndarray_dict_to_dict(loc_dic))
@@ -400,8 +459,14 @@ def dict_to_list(dic: dict) -> list:
 def ndarray_dict_to_dict(dic: dict) -> dict:
     """
     Return the original dictionary get from the dict_to_ndarray_dict
-    :param dic: the dic to be converted
-    :return: the original list
+    Parameters
+    ----------
+    dic, dict
+        the dictionary to be converted
+    Returns
+    -------
+    dict
+        the original dictionary
     """
     if "separator" not in dic.keys():
         raise UserWarning("dic_to_list, the given dictionary doesn't contain the required separator key."
@@ -431,6 +496,9 @@ def ndarray_dict_to_dict(dic: dict) -> dict:
                 i += 1
             elif type_i == "float":
                 res[k] = float(dic[k])
+                i += 1
+            elif type_i == "int64":
+                res[k] = np.int64(dic[k])
                 i += 1
             elif type_i == "int":
                 res[k] = int(dic[k])
@@ -474,7 +542,7 @@ def ndarray_dict_to_dict(dic: dict) -> dict:
 
 def colored_line(x, y, c, ax, **lc_kwargs):
     """
-    This function is copied from https://matplotlib.org/stable/gallery/lines_bars_and_markers/multicolored_line.html
+    This function is adapted from https://matplotlib.org/stable/gallery/lines_bars_and_markers/multicolored_line.html
     Plot a line with a color specified along the line by a third value.
 
     It does this by creating a collection of line segments. Each line segment is
@@ -540,7 +608,7 @@ It contains all the variables required to plot a graph on an axis
 It can be used to display the graph, save it as a .png file and save it using a
 .npy format in order to avoid having to easily regenerate the graph in a reproducible way.
 
-#------------------------Handling procedures-------------------------------------------------------------------
+------------------------Handling procedures----------------------------
 
 To initialise a Graphique :
     - For a new Graphique: g=Graphique()
@@ -629,15 +697,17 @@ To go further: display several graphs in one :
         self.axes: list[axes] = None
         self.param_ax: dict = dict()
         self.colorbar: list[Colorbar] = []
-        self.param_colorbar: list[dict] = [dict()]
-        self.ticks_colorbar: list[np.ndarray | list] = [[]]
+        self.cmap: list = []
+        self.norms: list = []
+        self.param_colorbar: list[dict] = []
+        self.ticks_colorbar: list[np.ndarray | list] = []
         # Contains additional parameters for the colorbars ex : label="legende"...
         # The first one is automatically associated with the image
         self.custum_colorbar_colors: list[list] = None
         # To bild custums discrete colorbars defind by the colors in thoses list (one list for one colorbar)
         self.custum_colorbar_values: list[list] = None
         # The values associated with the colors of self.custum_colorbar_colors
-
+        self.index_colorbar_image: list[int] = [] # Index of the image's colorbar(s)
         self.fig: Figure = None
         self.param_fig: dict = dict()  # Contains additional parameters for the Figure ex : facecolor="w"...
         self.param_enrg_fig: dict = dict(bbox_inches="tight")
@@ -670,7 +740,8 @@ To go further: display several graphs in one :
         # Additianal parameter's dictionarys
         self.param_lines: list = []  # for lines
         self.param_texts: list = []  # for texts
-
+        # Order of line plot (default the order of saving)
+        self.indexs_plot_lines: list = []
         # histogrammes
         self.bords_histogramme: list = []  # List of lists of coordinates of the borders of histograms' bars
         # liste contenant les valeurs des hauteurs de barres des histogrammes
@@ -724,11 +795,24 @@ To go further: display several graphs in one :
             values_files.close()
             self.load_dict(values_to_load)
 
-    def load_dict(self, values_to_load: dict):
+    def load_dict(self, values_to_load: dict) ->  None:
         """
-        load a Graphique contain in a dictionary
-        :param values_to_load:
-        :return:
+        Load a Graphique contained in a dictionary
+
+        Parameters
+        ----------
+        values_to_load: dict
+            The dictionary that contain all the necessery informations to build a Graphique.
+            Should be produced by another Graphique via Graphique.to_dict()
+
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+        Graphique.to_dict()
+
         """
         if "ext" in values_to_load.keys():
             self.ext = values_to_load["ext"]
@@ -746,7 +830,8 @@ To go further: display several graphs in one :
             self.custum_colorbar_colors = values_to_load["custum_colorbar_colors"]
         if "custum_colorbar_values" in values_to_load.keys():
             self.custum_colorbar_values = values_to_load["custum_colorbar_values"]
-
+        if "index_colorbar_image" in values_to_load.keys():
+            self.index_colorbar_image = values_to_load["index_colorbar_image"]
         if "param_labels_contours" in values_to_load.keys():
             self.param_labels_contours = values_to_load["param_labels_contours"]
         if "color_label_contours" in values_to_load.keys():
@@ -772,6 +857,8 @@ To go further: display several graphs in one :
             self.lines_x = values_to_load["lines_x"]
         if "lines_y" in values_to_load.keys():
             self.lines_y = values_to_load["lines_y"]
+        if "indexs_plot_lines" in values_to_load.keys():
+            self.indexs_plot_lines = values_to_load["indexs_plot_lines"]
         if "lines_t_x" in values_to_load.keys():
             self.lines_t_x = values_to_load["lines_t_x"]
         if "lines_t_y" in values_to_load.keys():
@@ -825,7 +912,16 @@ To go further: display several graphs in one :
 
     def to_dict(self) -> dict:
         """
-        :return: a dictionary to be saved with np.saved_compressed
+        Build a dictionary containing all the information of this Graphique
+        to save it with np.saved_compressed
+
+        Returns
+        -------
+        dict
+
+        See Also
+        -------
+        Graphique.to_dict()
         """
         enrg: dict = dict()  # Dictionary containing all the necessary information :
         # Used like :  np.savez_compressed(name_fichier,**enrg)
@@ -840,6 +936,8 @@ To go further: display several graphs in one :
             enrg["custum_colorbar_colors"] = self.custum_colorbar_colors
         if self.custum_colorbar_values is not None:
             enrg["custum_colorbar_values"] = self.custum_colorbar_values
+        if len(self.index_colorbar_image) > 0:
+            enrg["index_colorbar_image"] = self.index_colorbar_image
         if len(self.param_labels_contours) > 0:
             enrg["param_labels_contours"] = self.param_labels_contours
         if len(self.param_font) > 0:
@@ -862,6 +960,8 @@ To go further: display several graphs in one :
             enrg["lines_x"] = self.lines_x
         if len(self.lines_y) > 0:
             enrg["lines_y"] = self.lines_y
+        if len(self.indexs_plot_lines) > 0:
+            enrg["indexs_plot_lines"] = self.indexs_plot_lines
         if len(self.lines_t_x) > 0:
             enrg["lines_t_x"] = self.lines_t_x
         if len(self.lines_t_y) > 0:
@@ -915,11 +1015,21 @@ To go further: display several graphs in one :
 
     def save(self, filename: str = "graph_without_name", directory: str = None) -> None:
         """
-        Save the Graphique in self.directory (default the current working directory) in npz compress
+        Save the Graphique in self.directory (default the current working directory) in npz compressed
         format.
-        :param filename: The name of the .npz file (default: "graph_without_name")
-        :param directory: Graphique's directory (default self.directory (default : the curent working directory))
-        :return: None
+
+        Parameters
+        ----------
+
+        filename: str, optinal, default="graph_without_name"
+            The name of the .npz file (default: "graph_without_name")
+        directory: str, optional, default="./"
+            Graphique's directory (default self.directory (default : the curent working directory))
+
+        Returns
+        -------
+        None
+
         """
         if filename != "graph_without_name":
             if ".npz" in filename:
@@ -949,13 +1059,50 @@ To go further: display several graphs in one :
                         ticks: list | np.ndarray[np.float64] | None = None,
                         **kwargs) -> None:
         """
-        Build a customized discrete colorbar
-        :param values: The values of the colormap's color intervals if len(values)==2, the interval is automatically
+
+        Parameters
+        ----------
+
+        values : list[np.float64] | np.ndarray | tuple
+            The values of the colormap's color intervals if len(values)==2, the interval is automatically
             defined as a linear subdivision of the interval between values[0] and values[1] of size 255
-        :param colors: The associated colors, if None, a linear variation beteween C1 and C2 is bild
-        :param ticks: Array of ticks for the colorbar If None, ticks are determined automatically from the input.
-        :param kwargs: Additionals arguments for the colorbar
-        :return: None
+        colors : list | np.ndarray | tuple, optional
+            The associated colors, if None, a linear variation beteween C1 and C2 is bild
+        ticks : list | np.ndarray[np.float64], optional
+            Array of ticks for the colorbar If None, ticks are determined automatically from the input.
+        kwargs
+            Additional arguments for the colorbar :
+
+                location: str, {'right', 'top', 'bottom', 'left'}
+                    Indicate where the colorbar should be plotted
+                scale: str, {'linear', 'log', 'symlog'}
+                    The scale of the colorbar
+                ticks: list | array_like
+                format: str
+                    ticks' format
+                label: str
+                    The label to plot along the colorbar
+                size: float, default=0.01
+                    relative width of the colorbar
+                fraction: float, default=1
+                    relative hight of the colorbar
+                space_between: float, default=0.01
+                    relative space between colorsbars (and the plot)
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        >>> x = np.linspace(0, 10, 1000)
+        >>> alpha = np.linspace(1, 5, 10)
+        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> gr = g.Graphique()
+        >>> gr.logy(x, [x**a for a in alpha], color=colors)
+        >>> gr.customized_cmap(alpha, colors)
+        >>> gr.show()
+
         """
         if len(values) < 2:
             raise UserWarning("Graphique.custumized_cmap : the len of values need to be higer than 2")
@@ -988,10 +1135,58 @@ To go further: display several graphs in one :
 
     def line(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
-             marker: str | list = "", share_colorbar: bool = True,
-             scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+             marker: str | list | np.ndarray[str] = "", share_colorbar: bool = True,
+             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+             hide: bool = False, **kwargs) -> None:
         """
-        Equivalent to plt.plot with a small improvement:
+
+        Equivalent to plt.plot
+
+        Parameters
+        ----------
+
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -1003,17 +1198,18 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.linspace(0, 10, 1000)
+        >>> alpha = np.linspace(1, 5, 10)
+        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> gr = g.Graphique()
+        >>> gr.line(x, [x*a for a in alpha], color=colors)
+        >>> gr.customized_cmap(alpha, colors)
+        >>> gr.show()
+
         """
         if not isinstance(scale_z, str):
             raise UserWarning("""Graphique.line : The scale of the z-axis need to be represanted by a string :
@@ -1212,7 +1408,7 @@ To go further: display several graphs in one :
                                                                                col_min=c_min, col_max=c_max),
                                              location=locs[i % len(locs)],
                                              fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)], scale=scale_z,  **kwargs_colorbar)
+                                             aspect=aspects[i % len(aspects)], scale=scale_z, **kwargs_colorbar)
                 else:
                     if share_colorbar:
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
@@ -1256,7 +1452,7 @@ To go further: display several graphs in one :
                                              colors=colors,
                                              location=locs[i % len(locs)],
                                              fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)],  scale=scale_z, **kwargs_colorbar)
+                                             aspect=aspects[i % len(aspects)], scale=scale_z, **kwargs_colorbar)
                 if "label" in kwargs and args_auxi["label"] == "":
                     del args_auxi["label"]
                     # Delete empty legend to prevent a warning message and the addition of an empty gray square
@@ -1300,7 +1496,7 @@ To go further: display several graphs in one :
                         colors2 = np.array([])
                     z_colors: np.ndarray[np.float64] = np.append(z_colors2, z_colors1)
                     colors: np.ndarray[np.float64] = np.append(colors2, colors1)
-                    self.customized_cmap(values=z_colors, colors=colors,  scale=scale_z, **kwargs_colorbar)
+                    self.customized_cmap(values=z_colors, colors=colors, scale=scale_z, **kwargs_colorbar)
                     self.compt_color += 3
             elif scale_z == "linear" or scale_z == "log":
                 self.compt_color += 2 * len(x)
@@ -1445,7 +1641,7 @@ To go further: display several graphs in one :
                     colors2 = np.array([])
                 z_colors: np.ndarray[np.float64] = np.append(z_colors2, z_colors1)
                 colors: np.ndarray[np.float64] = np.append(colors2, colors1)
-                self.customized_cmap(values=z_colors, colors=colors,  scale=scale_z, **kwargs_colorbar)
+                self.customized_cmap(values=z_colors, colors=colors, scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 3
 
         elif dim_y == 2 and dim_z == 2:
@@ -1608,7 +1804,7 @@ To go further: display several graphs in one :
                                              colors=colors,
                                              location=locs[i % len(locs)],
                                              fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)],  scale=scale_z,
+                                             aspect=aspects[i % len(aspects)], scale=scale_z,
                                              **kwargs_colorbar)
                 if "label" in kwargs and args_auxi["label"] == "":
                     del args_auxi["label"]
@@ -1653,7 +1849,7 @@ To go further: display several graphs in one :
                         colors2 = np.array([])
                     z_colors: np.ndarray[np.float64] = np.append(z_colors2, z_colors1)
                     colors: np.ndarray[np.float64] = np.append(colors2, colors1)
-                    self.customized_cmap(values=z_colors, colors=colors,  scale=scale_z, **kwargs_colorbar)
+                    self.customized_cmap(values=z_colors, colors=colors, scale=scale_z, **kwargs_colorbar)
                     self.compt_color += 3
             elif scale_z == "linear" or scale_z == "log":
                 self.compt_color += 2 * len(x)
@@ -1794,7 +1990,7 @@ To go further: display several graphs in one :
                     colors2 = np.array([])
                 z_colors: np.ndarray[np.float64] = np.append(z_colors2, z_colors1)
                 colors: np.ndarray[np.float64] = np.append(colors2, colors1)
-                self.customized_cmap(values=z_colors, colors=colors,  scale=scale_z, **kwargs_colorbar)
+                self.customized_cmap(values=z_colors, colors=colors, scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 3
         else:
             idx_s: np.ndarray[int] = np.arange(len(x))
@@ -1889,9 +2085,52 @@ To go further: display several graphs in one :
                 del kwargs["label"]
             self.param_lines.append(kwargs)
 
-    def text(self, x: list | np.ndarray, y: list | np.ndarray,
-             s: list | np.ndarray, **args) -> None:
+        if hide and len(self.indexs_plot_lines) == 0:
+            if dim_y == 1:
+                self.indexs_plot_lines = list(np.arange(len(self.lines_x)-1))
+            elif dim_y > 1:
+                self.indexs_plot_lines = list(np.arange(len(self.lines_x) - len(y)))
+        elif not hide and len(self.indexs_plot_lines) != 0:
+            if dim_y == 1:
+                self.indexs_plot_lines.append(len(self.lines_x)-1)
+            elif dim_y > 1:
+                self.indexs_plot_lines.extend(list(np.arange(len(self.lines_x)-len(y), len(self.lines_x))))
+
+    def set_indexs_plot_lines(self, indexs=list | np.ndarray | str) -> None:
         """
+
+        Set the order in which the lines are plotted. If the index size is smaller than the lists of x/y lines
+        then some of them will not be plotted.
+
+        Parameters
+        ----------
+
+        indexs : list | np.ndarray | str
+            List lines' indexs to plot. The plotting order is the order of index.
+            If index=="default", then all the lines will be plotted in the order in which they were saved
+
+        Returns
+        -------
+            None
+
+        """
+
+        if isinstance(indexs, str) and indexs != "default":
+            raise UserWarning("Graphique.set_order_plot_lines : The only string available as parameter is 'default',"
+                              " not ", indexs)
+        elif not isinstance(indexs, list | np.ndarray | str):
+            raise UserWarning("Graphique.set_order_plot_lines : The only type available as parameter are "
+                              "list, array or str not", type(indexs))
+        elif (isinstance(indexs, list | np.ndarray) and (len(indexs) > len(self.lines_x)
+                                                         or np.max(indexs) >= len(self.lines_x))):
+            raise UserWarning("Graphique.set_order_plot_lines : there is at least one index in the index list",
+                              np.max(indexs), "that is higher than the maximum possible index ", len(self.lines_x) - 1)
+        self.indexs_plot_lines = list(indexs)
+
+    def text(self, x: list | np.ndarray, y: list | np.ndarray,
+             s: list | np.ndarray, **kwargs) -> None:
+        """
+
         Equivalent to plt.text with a small improvement:
         if y is in two dimensions, the second dimension is plotted :
             self.line(x,[y1,y2], *args) is equivalent to
@@ -1899,37 +2138,52 @@ To go further: display several graphs in one :
             plt.plot(x, y2, *args)
             if y1 and y2 have not the same size:
             self.line([x1,x2],[y1, y2], *args)
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param s: Texts to plot
-        :param args: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+        Parameters
+        ----------
+
+        x: list | np.ndarray
+            Abscissa(s)
+        y: list | np.ndarray
+            Ordinate(s)
+        s: list | np.ndarray
+            Texts to plot
+        kwargs
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
         """
-        if type(s) is str:
+        if isinstance(s, str) and isinstance(x, list | np.ndarray):
             s: np.ndarray = np.array([s for X in x])
-        if (len(np.shape(np.array(x))) == 2 and len(np.shape(np.array(y))) == 2 and
-                np.shape(np.array(x))[1] == np.shape(np.array(y))[1]):
-            for (X, Y, S) in zip(x, y, s):
+        if (isinstance(x, list | np.ndarray) and isinstance(y, list | np.ndarray)
+                and (len(np.shape(np.array(x))) == 1 and len(np.shape(np.array(y))) == 1
+                     and len(np.array(x)) == len(np.array(y)))):
+            args_auxi: list[dict] = [{} for X in x]
+            for k in kwargs.keys():
+                if isinstance(kwargs[k], list | np.ndarray) and len(kwargs[k]) == len(x):
+                    for i in range(len(x)):
+                        args_auxi[i][k] = kwargs[k][i]
+                else:
+                    for i in range(len(x)):
+                        args_auxi[i][k] = kwargs[k]
+            if "color" not in kwargs:
+                for i in range(len(x)):
+                    args_auxi[i]["color"] = l_colors[(len(self.lines_x) + i - 1) % len(l_colors)]
+            for (X, Y, S, argsS) in zip(x, y, s, args_auxi):
                 self.lines_t_x.append(X)
                 self.lines_t_y.append(Y)
                 self.lines_t_s.append(S)
-                args_auxi: list[dict] = [{} for XX in X]
-                for k in args.keys():
-                    if type(args[k]) is list | np.ndarray and len(args[k]) == len(X):
-                        for i in range(len(X)):
-                            args_auxi[i][k] = args[k][i]
-                    else:
-                        for i in range(len(X)):
-                            args_auxi[i][k] = args[k]
-                if "color" not in args:
-                    for i in range(len(X)):
-                        args_auxi[i]["color"] = l_colors[(len(self.lines_x) + i - 1) % len(l_colors)]
-                self.param_texts.extend(args_auxi)
-        elif len(y) != len(x):
+                self.param_texts.append(argsS)
+        elif (isinstance(x, list | np.ndarray) and isinstance(y, list | np.ndarray)
+              and len(y) != len(x)):
             raise ValueError("Graphique.text : the ordinate list should have the same size than "
                              "the abscissa list len(x): "
                              + str(len(x)) + " y : " + str(np.shape(np.array(y))))
-        elif len(y) != len(s):
+        elif (isinstance(x, list | np.ndarray) and isinstance(y, list | np.ndarray)
+              and len(y) != len(s)):
             raise ValueError("Graphique.text : the ordinate list should have the same size than "
                              "the text list len(s): "
                              + str(len(s)) + " y : " + str(np.shape(np.array(y))))
@@ -1937,100 +2191,144 @@ To go further: display several graphs in one :
             self.lines_t_x.append(x)
             self.lines_t_y.append(y)
             self.lines_t_s.append(s)
-            if "color" not in args:
+            if "color" not in kwargs:
                 # args["color"] = 'C' + str(len(self.lines_x) % 10)
-                args["color"] = l_colors[(len(self.lines_x) - 1) % len(l_colors)]
-            self.param_texts.append(args)
+                kwargs["color"] = l_colors[(len(self.lines_x) - 1) % len(l_colors)]
+            self.param_texts.append(kwargs)
 
-    def point(self, xp: float | np.double, yp: float | np.double, marker: str = "o", **args) -> None:
+    def point(self, xp: float | np.double, yp: float | np.double, marker: str = "o", hide: bool = False, **kwargs
+              ) -> None:
         """
-        Equivalent to plt.plot([xp],[yp],**args)
-        :param xp: Abscissa(s)
-        :param yp: Ordinate(s)
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param args: Additional argument to plot() function like linestyle, color....
-        :return: None"""
-        self.line([xp], [yp], marker=marker, **args)
+        Equivalent to Graphique.line([xp],[yp],**args)
+
+        Parameters
+        ----------
+        xp: float | np.double
+            Abscissa
+        yp: float | np.double
+             Ordinate
+        marker: str, optional, default="o"
+            The marker (ex ".", ",", "o", "v"...)
+            see matplotlib documentation for all the possibility
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+
+        args
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        """
+        self.line([xp], [yp], marker=marker, hide=hide, **kwargs)
 
     def errorbar(
             self, x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
             err_x: np.ndarray | list | None = None, marker: str = "", scale: str = "",
-            **kwargs: dict) -> None:
+            hide: bool = False, **kwargs: dict) -> None:
         """
         Equivalent to plt.errorbar
-        :param x: Abscissa
-        :param y: Ordinate
-        :param err_y: Error associated with y
-        :param err_x: Error associated with x
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param scale: The scales of (x, y) axis : default : "" (linear scale for both x and y
+
+        Parameters
+        ----------
+        x : list | array_like
+            Abscissa
+        y : list | array_like
+            Ordinate
+        err_y : list | array_like
+            Error associated with y
+        err_x : list | array_like
+            Error associated with x
+        marker : list[str] | array_like[str], str, optional, default=""
+            The marker (ex ".", ",", "o", "v"...)
+            see matplotlib documentation for all the possibility
+        scale : str, optional, default="linear"
+            The scales of (x, y) axis :
+            - default : "" (linear scale for both x and y)
             - polar : polar projection : X=R and Y=Theta
             - loglog, logx, logy : Logarithmic scale for both, x or y axis
             - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+        hide: bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs
+             Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+        None
+
         """
         if type(err_y) is str:
             raise TypeError("Graphique.errorbar : no error on the y axis are provided")
-        if len(err_y) != len(y):
+        if (len(err_y) != len(y) and len(err_y) != 2) or (len(err_y) == 2 and len(err_y[0]) != len(y)):
             raise ValueError(
-                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of"
-                "ordinate array  : x :" +
-                str(len(x)) + " y : " + str(len(y)) + " err y : " + str(len(err_y)))
+                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of "
+                "ordinate array  : len(x)=" +
+                str(len(x)) + " len(y)= " + str(len(y)) + " shape(err y)" + str(np.array(err_y).shape))
         elif (isinstance(y[0], list | np.ndarray) and isinstance(err_y[0], list | np.ndarray)
-            and np.any([len(Y) != len(errY) for (Y, errY) in zip(y, err_y)])):
+              and np.any([(len(Y) != len(errY) and len(errY) != 2)
+                          or (len(errY) == 2 and len(Y) != len(errY[0]))
+                          for (Y, errY) in zip(y, err_y)])):
             raise ValueError(
-                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of"
+                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of "
                 "ordinate array")
-        elif (isinstance(y[0], list | np.ndarray)
-            and np.any([len(Y) != len(err_y) for Y in y])):
+        elif (isinstance(y[0], list | np.ndarray )
+              and ((not isinstance(err_y[0], list | np.ndarray)) or len(err_y[0]) != 2)
+              and np.any([(len(Y) != len(err_y) and len(err_y) != 2)
+                          or (len(err_y) == 2 and len(Y) != len(err_y[0])) for Y in y])):
             raise ValueError(
-                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of"
+                "Graphique.errorbar the size of ordinate's errors array should be equal to the size of "
                 "ordinate array")
-        if err_x is not None and len(err_x) != len(x):
+        if err_x is not None and (len(err_x) != len(x) or (len(err_x) == 2 and len(err_x[0]) != len(err_x))):
             raise ValueError(
-                "Graphique.errorbar the size of abscissa's errors array should be equal to the size of"
-                "abscissa array  : x :" +
-                str(len(x)) + " y : " + str(len(y)) + " err y : " + str(len(err_y)))
+                "Graphique.errorbar the size of abscissa's errors array should be equal to the size of "
+                "abscissa array  : len(x)=" +
+                str(len(x)) + " len(y)=" + str(len(y)) + " shape(err y)=" + str(np.array(err_y).shape))
         elif err_x is not None and (isinstance(y[0], list | np.ndarray) and isinstance(err_x[0], list | np.ndarray)
-            and np.any([len(Y) != len(errY) for (Y, errY) in zip(x, err_x)])):
+                                    and np.any([(len(X) != len(errX) and len(errX) != 2)
+                                                or (len(errX) == 2 and len(errX[0]) != len(X))
+                                                for (X, errX) in zip(x, err_x)])):
             raise ValueError(
                 "Graphique.errorbar the size of abscissa's errors array should be equal to the size of"
                 "ordinate array")
         elif err_x is not None and (isinstance(x[0], list | np.ndarray)
-            and np.any([len(X) != len(err_x) for X in x])):
+                                    and np.any([(len(X) != len(err_x) and len(err_x) != 2)
+                                                or (len(err_x) == 2 and len(err_x[0]) != len(X))
+                                                for X in x])):
             raise ValueError(
                 "Graphique.errorbar the size of abscissa's errors array should be equal to the size of"
                 "ordinate array")
         if scale == "":
-            self.line(x, y,  marker=marker, **kwargs)
+            self.line(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "polaire":
-            self.polar(x, y, marker=marker, **kwargs)
+            self.polar(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "loglog":
-            self.loglog(x, y, marker=marker, **kwargs)
+            self.loglog(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "logx":
-            self.logx(x, y, marker=marker, **kwargs)
+            self.logx(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "logy":
-            self.logy(x, y, marker=marker, **kwargs)
+            self.logy(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symloglog":
-            self.symloglog(x, y, marker=marker, **kwargs)
+            self.symloglog(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symlogx":
-            self.symlogx(x, y, marker=marker, **kwargs)
+            self.symlogx(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symlogy":
-            self.symlogy(x, y, marker=marker, **kwargs)
+            self.symlogy(x, y, marker=marker, hide=hide, **kwargs)
         else:
             raise (ValueError("The scale " + scale + """ is not available. Please use : "", "polar",
             "loglog", "logx", "logy", "symloglog", "symlogx", "symlogy" """))
 
-        if isinstance(y[0], list) or isinstance(y[0], np.ndarray):
-            for i in range(len(y) - 1, -1):
-                if isinstance(err_y[0], list) or isinstance(err_y[0], np.ndarray):
+        if isinstance(y[0], list | np.ndarray):
+            for i in range(len(y) - 1, -1, -1):
+                if isinstance(err_y[0], list | np.ndarray):
                     self.err_y[-1 - i] = err_y[-1 - i]
                 else:
                     self.err_y[-1 - i] = err_y
-                if err_x is not None and isinstance(err_x[0], list) or isinstance(err_x[0], np.ndarray):
+                if err_x is not None and isinstance(err_x[0], list | np.ndarray):
                     self.err_x[-1 - i] = err_x[-1 - i]
                 elif err_x is not None:
                     self.err_x[-1 - i] = err_x
@@ -2045,22 +2343,39 @@ To go further: display several graphs in one :
 
     def errorplot(
             self, x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
-            marker: str = "", scale: str = "", **kwargs: dict) -> None:
+            marker: str = "", scale: str = "", hide: bool = False, **kwargs: dict) -> None:
         """
         Equivalent to plt.errorbar but the error is not represented by errorbars but by a
         uniform-colored polygon
 
-        :param x: Abscissa
-        :param y: Ordinate
-        :param err_y: Error associated with y
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param scale: The scales of (x, y) axis : default : "" (linear scale for both x and y
+        Parameters
+        ----------
+        x : list | array_like
+            Abscissa
+        y : list | array_like
+            Ordinate
+        err_y : list | array_like
+            Error associated with y
+        marker : list[str] | array_like[str], str, optional, default=""
+            The marker (ex ".", ",", "o", "v"...)
+            see matplotlib documentation for all the possibility
+        scale : str, optional, default="linear"
+            The scales of (x, y) axis :
+            - default : "" (linear scale for both x and y)
             - polar : polar projection : X=R and Y=Theta
             - loglog, logx, logy : Logarithmic scale for both, x or y axis
             - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+        hide: bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs
+             Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+        None
+
         """
         if type(err_y) is str:
             raise TypeError("Graphique.errorbar : no error on the y axis are provided")
@@ -2070,21 +2385,21 @@ To go further: display several graphs in one :
                 "abscissa array  : x :" +
                 str(len(x)) + " y : " + str(len(y)) + " err y : " + str(len(err_y)))
         if scale == "":
-            self.line(x, y, marker=marker,**kwargs)
+            self.line(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "polaire":
-            self.polar(x, y, marker=marker, **kwargs)
+            self.polar(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "loglog":
-            self.loglog(x, y, marker=marker,**kwargs)
+            self.loglog(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "logx":
-            self.logx(x, y, marker=marker,**kwargs)
+            self.logx(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "logy":
-            self.logy(x, y, marker=marker,**kwargs)
+            self.logy(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symloglog":
-            self.symloglog(x, y, marker=marker,**kwargs)
+            self.symloglog(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symlogx":
-            self.symlogx(x, y, marker=marker,**kwargs)
+            self.symlogx(x, y, marker=marker, hide=hide, **kwargs)
         elif scale == "symlogy":
-            self.symlogy(x, y, marker=marker,**kwargs)
+            self.symlogy(x, y, marker=marker, hide=hide, **kwargs)
         else:
             raise (ValueError("The scale " + scale + """ is not available. Please use : "", "polar",
             "loglog", "logx", "logy", "symloglog", "symlogx", "symlogy" """))
@@ -2127,34 +2442,102 @@ To go further: display several graphs in one :
 
     def polar(self, r: list | np.ndarray, theta: list | np.ndarray,
               z: np.ndarray | list | None = None, marker: str = "",
-              share_colorbar: bool = True, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+              share_colorbar: bool = True, scale_z: str = "linear", hide: bool = False,
+              kwargs_colorbar: dict | None = None,
               **kwargs: dict) -> None:
         """
+
         Equivalent to self.line in polar projection
-        Attention: The order is opposit to the matplotlib one :
+
+        Parameters
+        ----------
+        r : list | array_like
+             Radius
+        theta : list | array_like
+            Angle(s)
+        z : list | array_like, optional
+            z-axis (represented by a colorscale)
+        marker:  : list[str] | array_like, str, optional, default=""
+            The marker (ex ".", ",", "o", "v"...)
+            see matplotlib documentation for all the possibility
+        share_colorbar : bool, optional, default=True
+            If True(default) and z is not None, only one colorscale is used
+            even if z is in two dimensions
+        scale_z: str, optional, {"linear", "log", "symlog"}, default="linear"
+            The scale of the z-axis (linear (default), log, symplog)
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar: dict
+            Extra arguments for the colorbar (if z is not None)
+        kwargs
+            Additional argument to plot() function like linestyle, color...
+
+        Returns
+        -------
+        None
+
+        Notes
+        -------
+        The order of first and second arguments is opposit to the matplotlib one :
         The first argument is the radius, then the angle
-        :param r: Radius
-        :param theta: Angle(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
         """
         self.line(r, theta, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(projection="polar")
 
     def loglog(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                z: np.ndarray | list | None = None,
                marker: str | list = "", share_colorbar: bool = True,
-               scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+               scale_z: str = "linear", hide: bool=False, kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for both x and y-axis:
+
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2166,29 +2549,76 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.linspace(0, 10, 1000)
+        >>> alpha = np.linspace(1, 5, 10)
+        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> gr = g.Graphique()
+        >>> gr.loglog(x, [x*a for a in alpha], color=colors)
+        >>> gr.customized_cmap(alpha, colors)
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(xscale="log", yscale="log")
 
     def symloglog(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                   z: np.ndarray | list | None = None,
                   marker: str | list = "", share_colorbar: bool = True,
-                  scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+                  scale_z: str = "linear", hide: bool = False,
+                  kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for both x and y-axis
         Both the negative and positive parts of y are represanted:
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2200,28 +2630,72 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker)), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.linspace(-10, 10, 1000)
+        >>> gr = g.Graphique()
+        >>> gr.symloglog(x, np.tan(x))
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(xscale="symlog", yscale="symlog")
 
     def logx(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
              marker: str | list = "", share_colorbar: bool = True,
-             scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+             scale_z: str = "linear", hide: bool = False,
+             kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for x-axis:
+
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2233,29 +2707,73 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker)), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.logspace(-10, 10, 1000)
+        >>> gr = Graphique()
+        >>> gr.logx(x, np.arctan(x))
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(xscale="log")
 
     def symlogx(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
-               z: np.ndarray | list | None = None,
-               marker: str | list = "", share_colorbar: bool = True,
-               scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+                z: np.ndarray | list | None = None,
+                marker: str | list = "", share_colorbar: bool = True,
+                scale_z: str = "linear", hide: bool = False,
+                kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for both x-axis (both negative and positive
         part are represanted):
+
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2267,28 +2785,72 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker)), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.append(-np.logspace(10, -10, 1000), np.logspace(-10, 10, 1000))
+        >>> gr = Graphique()
+        >>> gr.symlogx(x, np.arctan(x))
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(xscale="symlog")
 
     def logy(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
              marker: str | list = "", share_colorbar: bool = True,
-             scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+             scale_z: str = "linear", hide: bool = False,
+             kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for y-axis:
+
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+        Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2300,29 +2862,72 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker)), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.logspace(-10, 10, 1000)
+        >>> gr = Graphique()
+        >>> gr.logy(x, np.arctan(x))
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(yscale="log")
 
     def symlogy(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                 z: np.ndarray | list | None = None,
                 marker: str | list = "", share_colorbar: bool = True,
-                scale_z: str = "linear", kwargs_colorbar: dict | None = None, **kwargs) -> None:
+                scale_z: str = "linear", hide: bool = False,
+                kwargs_colorbar: dict | None = None, **kwargs) -> None:
         """
         Equivalent to self.line with a logarithmique scale for y-axis (both positive and negative
         part are represanted):
+
+        Parameters
+        ----------
+        x : array_like | list
+            Abscissa(s)
+        y : array_like | list, optional
+            Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+        z : array_like | list, optional
+             z-axis (represented by a colorscale)
+        marker : str | list[str] | array_like[str], optional, default=""
+            The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+        share_colorbar : bool, optional, default=True
+             If True (default) and z is not None, only one colorscale is used
+             even if z is in two dimensions
+        scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+            The scale of the z-axis
+        hide : bool, optional, default=False
+            If True then the new line(s) is/are not plotted with the Graphique.
+            To plot them, then change the plot order with self.set_indexs_plot_lines
+        kwargs_colorbar, optional
+            Extra arguments for the colorbar (if z is not None)
+        kwargs, optional
+            Additional argument to plot() function like linestyle, color....
+
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+        Graphique.line : Build line(s) for the Graphique
+        Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+        Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+        Graphique.point : To plot a single point
+        Graphique.errorbar : To plot a line with errorbars
+        Graphique.errorplot : To plot a line with errorbars represanted as filled area
+        Graphique.polar : To plot a line in polar coordinates
+        Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+        Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+
+        Notes
+        -------
+        This function has a small improuvment compared with plt.plot :
+
         if y is in two dimensions, the second dimension is plotted :
             - `self.line(x,[y1,y2], *args)` is equivalent to
                 `'`plt.plot(x, y1, *args)
@@ -2334,103 +2939,299 @@ To go further: display several graphs in one :
              is equivalent to
                 `plt.plot(x, y1, marker=".", label="Curve1")
                 plt.plot(x, y2, marker=".", label="Curve2")`
-        :param x: Abscissa(s)
-        :param y: Ordinate(s)
-        :param z: z-axis (represented by a colorscale)
-        :param marker: The marker (default="" (no marker)), ex ".", ",", "o", "v"...
-         see matplotlib documentation for all the possibility
-        :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-        even if z is in two dimensions
-        :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-        :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-        :param kwargs: Additional argument to plot() function like linestyle, color....
-        :return: None
+
+
+        Examples
+        --------
+        >>> x = np.linspace(0,np.pi,1000)
+        >>> gr = g.Graphique()
+        >>> gr.symlogy(x, np.tan(x))
+        >>> gr.show()
+
         """
         self.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
         self.config_ax(yscale="symlog")
 
     def histogram(
             self, values: np.ndarray, weights: np.ndarray | None = None,
-            normalization: bool = True, statistic: str = 'sum', bins: int = 10, **args) -> None:
+            normalization: bool = True, statistic: str = 'sum', bins: int = 10, stat_args: dict = None,
+            **kwargs) -> None:
         """
         Plot the histogram of values
-        :param values: The values to histogramed
-        :param weights: The weights to be applied to values (default one)
-        :param normalization: If the histogram is normalized or not
-        :param statistic: The statistic to compute (default is 'sum'). The following statistics are available:
-'mean': compute the mean of values for points within each bin. Empty bins will be represented by NaN.
-'std': compute the standard deviation within each bin. This is implicitly calculated with ddof=0.
-'median': compute the median of values for points within each bin. Empty bins will be represented by NaN.
-'count': compute the count of points within each bin. This is identical to an unweighted histogram. values array is not
-referenced.
-'sum': compute the sum of values for points within each bin. This is identical to a weighted histogram.
-'min': compute the minimum of values for points within each bin. Empty bins will be represented by NaN.
-'max': compute the maximum of values for point within each bin. Empty bins will be represented by NaN.
-function : a user-defined function which takes a 1D array of values, and outputs a single numerical statistic.
- This function will be called on the values in each bin. Empty bins will be represented by function([]),
- or NaN if this returns an error.
-        :param bins: Number of bins in the histogram
-        :param args: Additionals argument for `sp.binned_statistic`
-        :return: None
-        """
 
+        Parameters
+        ----------
+        values : array_like
+            The values to histogramed
+        weights : array_like, optional
+            The weights to be applied to values
+        normalization : bool, optional, default=True
+            If the histogram is normalized or not
+        statistic : str, optional, default="sum"
+            The statistic to compute.
+            The following statistics are available:
+                - 'mean': compute the mean of values for points within each bin. Empty bins will be represented by NaN.
+                - 'std': compute the standard deviation within each bin. This is implicitly calculated with ddof=0.
+                - 'median': compute the median of values for points within each bin. Empty bins will be represented by NaN.
+                - 'count': compute the count of points within each bin. This is identical to an unweighted histogram. values array is not
+                referenced.
+                - 'sum': compute the sum of values for points within each bin. This is identical to a weighted histogram.
+                - 'min': compute the minimum of values for points within each bin. Empty bins will be represented by NaN.
+                - 'max': compute the maximum of values for point within each bin. Empty bins will be represented by NaN.
+        bins : int, optional, default=10
+            Number of bins in the histogram
+        stat_args, dict, optional
+            Additionals argument for `sp.binned_statistic`
+        kwargs
+             Additionals argument for plt.bars
+
+        Returns
+        -------
+        None
+
+        See also
+        -------
+        scipy.stats.binned_statistic
+
+        """
         if weights is None:
             weights = np.ones(len(values))
+        if stat_args is None:
+            stat_args = dict()
+
         vals, bds, indices = sp.binned_statistic(
-            values, weights, statistic, bins, **args)
+            values, weights, statistic, bins, **stat_args)
 
         if normalization:
             vals /= len(values)
             vals /= bds[1:] - bds[:-1]
+
+        if "color" not in kwargs:
+            kwargs["color"] = l_colors[(self.compt_color + 1) % len(l_colors)]
+            self.compt_color += 1
+
         self.bords_histogramme.append(bds)
         self.vals_histogramme.append(vals)
-        self.param_histogrammes.append(args)
+        self.param_histogrammes.append(kwargs)
 
     def image(self, array_image: np.ndarray,
-              x_axe: list | np.ndarray, y_axe: list | np.ndarray, **args) -> None:
+              x_axe: list | np.ndarray | None = None, y_axe: list | np.ndarray | None = None,
+              colorscale: str = "linear",
+              cmap: str = "default", colorbar_ticks: list | np.ndarray | None = None,
+              colorbar_label: str = "", kwargs_colorbar: dict | None = None,
+              colorbar_index: int = ii_max,
+              vmin: np.float64 = -np.inf, vmax: np.float64 = np.inf,
+              **kwargs) -> None:
         """
-        Plot the array image through plt.pcolor
-        :param array_image: The matrix (2D) to be plotted
-        :param x_axe: the x-axes coordinate (for the array)
-        :param y_axe: the y-axes coordinate (for the array)
-        :param args: Additionals arguments for pcolor
-        :return: None
+
+        Plot the array image through plt.pcolor or plt.imshow for 3 color images
+
+        Parameters
+        ----------
+        array_image : np.ndarray
+            The matrix (2D, or 3D for colored images (the color is on the third axis)) to be plotted
+        x_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[0])
+            The x-axes coordinate (for the array), only for 2d array_image
+        y_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[1])
+            The y-axes coordinate (for the array), only for 2d array_image
+        colorscale : str, optional, default="linear", {"linear", "log", "symlog"}
+            The scale for the colorbar
+        cmap : str, optional, default="default"
+            The colormap, default a linear color interpolation between two colors CX
+        colorbar_ticks : list | array_like, optional
+            The colorbar's ticks
+        colorbar_label : str, optional, default=""
+            The colorbar's label
+        kwargs_colorbar : dict, optional
+            Additional arguments for the colorbar :
+                location: str, {'right', 'top', 'bottom', 'left'}
+                    Indicate where the colorbar should be plotted
+                scale: str, {'linear', 'log', 'symlog'}
+                    The scale of the colorbar
+                ticks: list | array_like
+                format: str
+                    ticks' format
+                label: str
+                    The label to plot along the colorbar
+                size: float, default=0.01
+                    relative width of the colorbar
+                fraction: float, default=1
+                    relative hight of the colorbar
+                space_between: float, default=0.01
+                    relative space between colorsbars (and the plot)
+        colorbar_index : int, optional
+            The index of a previouly defined colorbar, to use insted of building a new one, all the others colorbar are
+            ignored if provided
+        vmin : np.float64, optional, default : the minimum of array_image
+            The minimum value for the colorbar
+        vmax : np.float64, optional, default : the maximum of array_image
+            The maximum value for the colorbar
+        kwargs
+            Additionals arguments for pcolor
+        Returns
+        -------
+            None
+
+        See Also
+        --------
+
+        matplotlib.pyplot.pcolor
+            Use to plot 2d array images
+        matplotlib.pyplot.imshow
+            Use to plot 3-colors images
+        Graphique.contours
+            To draw levels lines onto the image
+
         """
+        if vmin == -np.inf:
+            vmin: np.float64 = np.nanmin(array_image)
+        else:
+            array_image[array_image < vmin] = vmin
+        if vmax == np.inf:
+            vmax: np.float64 = np.nanmax(array_image)
+        else:
+            array_image[array_image > vmax] = vmax
+        if kwargs_colorbar is None:
+            kwargs_colorbar = {}
+        if colorscale == "linear":
+            color_values: np.ndarray[np.float64] = np.linspace(vmin, vmax, 255)
+        elif colorscale == "log":
+            if vmin <= 0. and np.any(array_image > 0.):
+                vmin: np.float64 = np.nanmin(array_image[array_image > 0.])
+            else:
+                raise UserWarning("Graphique.image : There is no positive values to plot with the log scale")
+            color_values: np.ndarray[np.float64] = np.geomspace(vmin, vmax, 255)
+        elif colorscale == "symlog":
+            if vmin > 0:
+                color_values: np.ndarray[np.float64] = np.geomspace(vmin, vmax, 255)
+            elif vmax < 0:
+                color_values: np.ndarray[np.float64] = np.geomspace(-vmin, -vmax, 255)
+            else:
+                vneg_sup: np.float64 = np.nanmax(array_image[array_image < 0.])
+                vpos_inf: np.float64 = np.nanmin(array_image[array_image > 0.])
+                color_values: np.ndarray[np.float64] = np.append(np.geomspace(-vmin, -vneg_sup,
+                                                                              int(abs(np.log10(vmin / vneg_sup)
+                                                                                      / (np.log10(vmin / vneg_sup)
+                                                                                         + np.log10(vmax / vpos_inf)))
+                                                                                  * 255)),
+                                                                 np.geomspace(vpos_inf, vmax,
+                                                                              int(abs(np.log10(vmax / vpos_inf)
+                                                                                      / (np.log10(vmin / vneg_sup)
+                                                                                         + np.log10(vmax / vpos_inf)))
+                                                                                  * 255)))
+        else:
+            color_values: np.ndarray[np.float64] = colorscale
+
+        if len(array_image.shape) == 3:
+            if array_image.shape[2] > 4:
+                raise UserWarning("Graphique.image : The array_image have not the right shape to plot a color image")
+            array_image = np.interp(array_image, color_values, np.linspace(0, 1, len(color_values)))
+            if cmap != "default":
+                print("Warning Graphique.image : for colored images, the colorbars parameters are ignored")
+            if "location" not in kwargs_colorbar.keys():
+                kwargs_colorbar["location"] = 'right'
+            if "size" not in kwargs_colorbar.keys():
+                kwargs_colorbar["size"] = 0.02
+
+            colors_r: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+                                                                   col_min=to_hex((0, 0, 0)),
+                                                                   col_max=to_hex((1, 0, 0)))
+
+            self.customized_cmap(color_values, colors_r, ticks=colorbar_ticks, label=colorbar_label,
+                                 **kwargs_colorbar)
+            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+
+            colors_v: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+                                                                   col_min=to_hex((0, 0, 0)),
+                                                                   col_max=to_hex((0, 1, 0)))
+            self.customized_cmap(color_values, colors_v, ticks="", label="", share_axis=True,
+                                 space_between=0.005, **kwargs_colorbar)
+            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+
+            colors_b: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+                                                                   col_min=to_hex((0, 0, 0)),
+                                                                   col_max=to_hex((0, 0, 1)))
+            self.customized_cmap(color_values, colors_b, ticks="", label="", share_axis=True,
+                                 space_between=0.005, **kwargs_colorbar)
+            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+        elif colorbar_index == ii_max:
+            if cmap == "default":
+                colors: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+                                                                     col_min=l_colors[(self.compt_color + 1)
+                                                                                      % len(l_colors)],
+                                                                     col_max=l_colors[(self.compt_color + 2)
+                                                                                      % len(l_colors)])
+                self.compt_color += 2
+            elif cmap not in list(plt.colormaps):
+                raise UserWarning("Graphique.image : the colorbar ", cmap,
+                                  "isn't awalible. Please use ", list(plt.colormaps))
+            else:
+                cmap_auxi = plt.get_cmap(cmap)
+                colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                    cmap_auxi(np.linspace(0, 1 , len(color_values)))])
+            if kwargs_colorbar is None:
+                kwargs_colorbar = dict()
+            self.customized_cmap(color_values, colors, ticks=colorbar_ticks, label=colorbar_label, **kwargs_colorbar)
+            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+        else:
+            self.index_colorbar_image.append(int(cmap))
         self.array_image = array_image
         self.x_axe_image = np.array(x_axe)
         self.y_axe_image = np.array(y_axe)
-        self.param_image = args
+        self.param_image = kwargs
 
     def contours(
-            self, levels: np.ndarray | list | None = None, array_contours: np.ndarray | None = None,
+            self, levels: int | np.ndarray | list | None = None, array_contours: np.ndarray | None = None,
             x_axe: list | np.ndarray | None = None,
             y_axe: list | np.ndarray | None = None, labels: list | np.ndarray | None = None,
-            labels_mask: np.ndarray | None = None, **args):
+            labels_mask: np.ndarray | None = None, **kwargs):
         """
+
         Plot the level lines associated to self.array_image or array_contours
-        :param levels: Nombre (or list of) levels to plot
-        :param array_contours: If not None, the reference array to determine the level
-         (default, array_contours=self.array_image)
-        :param x_axe: the x-axes coordinate (for the array if array_contour is not None)
-        :param y_axe: the y-axes coordinate (for the array if array_contour is not None)
-        :param labels: the labels of each level line
-        :param labels_mask: the mask of levels line to show the labels
-        :param args: additional arguments
-        :return: None
+
+        Parameters
+        ----------
+        levels : int | array_like | list, optional
+            Number (or list of) levels to plot
+        array_contours : array_like, optional, default=self.arry_image
+            If not None, the reference array to determine the level
+        x_axe : array_like | list, optional
+            the x-axes coordinate (for the array if array_contour is not None)
+        y_axe : array_like | list, optional
+            the y-axes coordinate (for the array if array_contour is not None)
+        labels : array_like | list, optional
+            the labels of each level line
+        labels_mask : array_like | list, optional
+            the mask of levels line to show the labels
+        kwargs
+            additional arguments
+
+        Returns
+        -------
+        None
+
+
+        See Also
+        --------
+        matplotlib.pyplot.contour
+            Used to plot the levels lines
+        Graphique.image
+            To plot an image, this image can be used as a reference for the levels lines
+
         """
         idx_levels: np.ndarray | None = None
         if type(levels) is list or type(levels) is np.ndarray:
             idx_levels = np.argsort(levels)
             levels = levels[idx_levels]
 
-        if "colors" in args.keys() and (type(args["colors"]) is list
-                                        or type(args["colors"]) is np.ndarray):
-            self.color_label_contours = args["colors"]
-            del args["colors"]
+        if "colors" in kwargs.keys() and (type(kwargs["colors"]) is list
+                                          or type(kwargs["colors"]) is np.ndarray):
+            self.color_label_contours = kwargs["colors"]
+            del kwargs["colors"]
 
         if levels is not None:
-            args['levels'] = levels
+            kwargs['levels'] = levels
             if labels is not None:
                 if len(labels) != len(levels):
                     raise UserWarning("Graphique.contours : the labels size should be equal to the levels size: levels",
@@ -2445,338 +3246,378 @@ function : a user-defined function which takes a 1D array of values, and outputs
                     self.clabels_mask = labels_mask[idx_levels]
         if array_contours is None:
             self.tab_contours_is_image = True
-            if type(args['levels']) is int:
-                self.nb_contours = args['levels']
-                del args['levels']
+            if type(kwargs['levels']) is int:
+                self.nb_contours = kwargs['levels']
+                del kwargs['levels']
             else:
-                self.nb_contours = len(args['levels'])
-                self.levels = args['levels']
-                del args['levels']
+                self.nb_contours = len(kwargs['levels'])
+                self.levels = kwargs['levels']
+                del kwargs['levels']
             liste_intersect: list[str] = ['alpha0', 'vmin', 'vmax', 'norm']
-            if "colors" not in args:
+            if "colors" not in kwargs:
                 liste_intersect.append("cmap")
             for p in liste_intersect:
                 if p in self.param_image:
                     self.param_contours[p] = self.param_image[p]
-            self.param_contours.update(args)
+            self.param_contours.update(kwargs)
         else:
             self.array_contours = array_contours
             self.tab_contours_is_image = False
             self.x_axe_contours = x_axe
             self.y_axe_contours = y_axe
-            self.param_contours = args
+            self.param_contours = kwargs
 
     def polygon(self, ind, alpha: float | np.double = 0.7, facecolor: str = 'C3', plot_borders: bool = True,
-                **args) -> None:
+                **kwargs) -> None:
         """
+
         Plot a uniformly colored polygon
-        :param ind: 2-dimensional array/list of the coordinate of the polygon characteristics points
-        ind[:, 0] point's abscissas
-        ind[:, 1] point's ordinate
-        :param alpha: transparency (between 0 to 1, default 0.7)
-        :param facecolor: Polygon's color
-        :param plot_borders: If True (default) plot a line at the polygon's border
-        :param args:
-        :return:
+
+        Parameters
+        ----------
+        ind
+            2-dimensional array/list of the coordinate of the polygon characteristics points
+            ind[:, 0] point's abscissas
+            ind[:, 1] point's ordinate
+        alpha
+            transparency (between 0 to 1, default 0.7)
+        facecolor
+            Polygon's color
+        plot_borders
+            If True (default) plot a line at the polygon's border
+        kwargs
+            Extras arguments for matplotlib.patches.PathPatch
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        matplotlib.patches.PathPatch
+            Use to draw the polygon
+
         """
         self.index_polygons.append(ind)
-        args["alpha"] = alpha
-        args['facecolor'] = facecolor
-        if plot_borders and "edgecolor" not in args.keys():
-            args['edgecolor'] = facecolor
-        self.param_polygons.append(args)
+        kwargs["alpha"] = alpha
+        kwargs['facecolor'] = facecolor
+        if plot_borders and "edgecolor" not in kwargs.keys():
+            kwargs['edgecolor'] = facecolor
+        self.param_polygons.append(kwargs)
 
-        # if plot_borders:
-            # args = args.copy()
-            # args['color'] = facecolor
-            # del args['facecolor']
-            # if "label" in args:
-            #     del args["label"]
-            #
-            # self.line(ind[:, 0], ind[:, 1], **args)  # border of the polygon
-
-    def config_ax(self, **dico) -> None:
+    def config_ax(self, **kwargs) -> None:
         """
         Additionals configurations for ax
-        :param dico:
-        Keywords awalible (see matplotlib documentation)
 
-            - sharex, shareyAxes, optional :The x- or y-axis is shared with the x- or y-axis in the input Axes.
-            Note that it is not possible to unshare axes.
+        Parameters
+        ----------
 
-            - frameonbool, default: True : Whether the Axes frame is visible.
+        kwargs
+            Keywords awalible (see matplotlib documentation)
 
-            - box_aspectfloat, optional : Set a fixed aspect for the Axes box,
-             i.e. the ratio of height to width. See set_box_aspect for details.
+                - sharex, sharey Axes, optional : The x- or y-axis is shared with the x- or y-axis in the input Axes.
+                Note that it is not possible to unshare axes.
 
-            - forward_navigation_eventsbool or "auto", default: "auto"
-            Control whether pan/zoom events are passed through to Axes below this one. "auto" is True for axes with an
-             invisible patch and False otherwise.
+                - frameonbool, default: True : Whether the Axes frame is visible.
 
-            - Other optional keyword arguments:
+                - box_aspectfloat, optional : Set a fixed aspect for the Axes box,
+                 i.e. the ratio of height to width. See set_box_aspect for details.
 
-            -- adjustable {'box', 'datalim'}
+                - forward_navigation_eventsbool or "auto", default: "auto"
+                Control whether pan/zoom events are passed through to Axes below this one. "auto" is True for axes with an
+                 invisible patch and False otherwise.
 
-            -- agg_filter : a filter function, which takes a (m, n, 3) float array and a dpi value, and returns
-             a (m, n, 3) array and two offsets from the bottom left corner of the image
+                - Other optional keyword arguments:
 
-            -- alpha : scalar or None
+                -- adjustable {'box', 'datalim'}
 
-            -- anchor : (float, float) or {'C', 'SW', 'S', 'SE', 'E', 'NE', ...}
+                -- agg_filter : a filter function, which takes a (m, n, 3) float array and a dpi value, and returns
+                 a (m, n, 3) array and two offsets from the bottom left corner of the image
 
-            -- animated : bool
+                -- alpha : scalar or None
 
-            -- aspect : {'auto', 'equal'} or float
+                -- anchor : (float, float) or {'C', 'SW', 'S', 'SE', 'E', 'NE', ...}
 
-            -- autoscale_on : bool
+                -- animated : bool
 
-            -- autoscalex_on
+                -- aspect : {'auto', 'equal'} or float
 
-            -- autoscaley_on
+                -- autoscale_on : bool
 
-            -- axes_locator : Callable[[Axes, Renderer], Bbox]
+                -- autoscalex_on
 
-            -- axisbelow : bool or 'line'
+                -- autoscaley_on
 
-            -- box_aspect : float or None
+                -- axes_locator : Callable[[Axes, Renderer], Bbox]
 
-            -- clip_on : bool
+                -- axisbelow : bool or 'line'
 
-            -- facecolor or fc : color
+                -- box_aspect : float or None
 
-            -- figure : Figure
+                -- clip_on : bool
 
-            -- forward_navigation_events : bool or "auto"
+                -- facecolor or fc : color
 
-            -- frame_on : bool
+                -- figure : Figure
 
-            -- gid : str
+                -- forward_navigation_events : bool or "auto"
 
-            -- in_layout : bool
+                -- frame_on : bool
 
-            -- label : object
+                -- gid : str
 
-            -- mouseover : bool
+                -- in_layout : bool
 
-            -- navigate : bool
+                -- label : object
 
-            -- navigate_mode
+                -- mouseover : bool
 
-            -- picker : None or bool or float
+                -- navigate : bool
 
-            -- position : [left, bottom, width, height]
+                -- navigate_mode
 
-            -- rasterization_zorder : float or None
+                -- picker : None or bool or float
 
-            -- rasterized : bool
+                -- position : [left, bottom, width, height]
 
-            -- sketch_params : (scale: float, length: float, randomness: float)
+                -- rasterization_zorder : float or None
 
-            -- snap : bool or None
+                -- rasterized : bool
 
-            -- subplotspec
+                -- sketch_params : (scale: float, length: float, randomness: float)
 
-            -- title : str
+                -- snap : bool or None
 
-            -- url : str
+                -- subplotspec
 
-            -- visible : bool
+                -- title : str
 
-            -- xbound : (lower: float, upper: float)
+                -- url : str
 
-            -- xlabel : str
+                -- visible : bool
 
-            -- xlim : (left: float, right: float)
+                -- xbound : (lower: float, upper: float)
 
-            -- xmargin : float greater than -0.5
+                -- xlabel : str
 
-            -- xscale
+                -- xlim : (left: float, right: float)
 
-            -- xticklabels
+                -- xmargin : float greater than -0.5
 
-            -- xticks
+                -- xscale
 
-            -- ybound : (lower: float, upper: float)
+                -- xticklabels
 
-            -- ylabel : str
+                -- xticks
 
-            -- ylim : (bottom: float, top: float)
+                -- ybound : (lower: float, upper: float)
 
-            -- ymargin : float greater than -0.5
+                -- ylabel : str
 
-            -- yscale
+                -- ylim : (bottom: float, top: float)
 
-            -- yticklabels
+                -- ymargin : float greater than -0.5
 
-            -- yticks
+                -- yscale
 
-            -- zorder : float
-        :return: None
+                -- yticklabels
+
+                -- yticks
+
+                -- zorder : float
+
+        Returns
+        -------
+
+            None
+
+        See Also
+        --------
+
+        matplotlib.axes.set
+            The function used with kwargs
+
         """
-        if 'xticks' in dico:
-            self.x_axe = dico['xticks']
-            del dico['xticks']
-        if 'yticks' in dico:
-            self.y_axe = dico['yticks']
-            del dico['yticks']
-        if 'xticklabels' in dico:
-            self.labels_x_ticks = dico['xticklabels']
-            del dico['xticklabels']
-        if "yticklabels" in dico:
-            self.labels_y_ticks = dico['yticklabels']
-            del dico['yticklabels']
-        if "Figure" in dico:
-            self.fig = dico["Figure"]
-            del dico["Figure"]
-        self.param_ax.update(dico)
+        if 'xticks' in kwargs:
+            self.x_axe = kwargs['xticks']
+            del kwargs['xticks']
+        if 'yticks' in kwargs:
+            self.y_axe = kwargs['yticks']
+            del kwargs['yticks']
+        if 'xticklabels' in kwargs:
+            self.labels_x_ticks = kwargs['xticklabels']
+            del kwargs['xticklabels']
+        if "yticklabels" in kwargs:
+            self.labels_y_ticks = kwargs['yticklabels']
+            del kwargs['yticklabels']
+        if "Figure" in kwargs:
+            self.fig = kwargs["Figure"]
+            del kwargs["Figure"]
+        self.param_ax.update(kwargs)
 
-    def config_legende(self, **dico) -> None:
+    def config_legende(self, **kwargs) -> None:
         """
-        :param dico: additionals parameters for the legend
-        (see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html)
+        To set additionals parameters for the legend plotting
 
-        - locstr  default: rcParams["legend.loc"] (default: 'best')  The location of the legend.
-                The strings 'upper left', 'upper right', 'lower left', 'lower right' place the legend at
-                 the corresponding corner of the axes.
-                The strings 'upper center', 'lower center', 'center left', 'center right' place the
-                 legend at the center of the corresponding edge of the axes.
-                The string 'center' places the legend at the center of the axes.
-                The string 'best' places the legend at the location, among the nine locations defined so far, with the
-                 minimum overlap with other drawn artists. This option can be quite slow for plots with large amounts
-                 of data; your plotting speed may benefit from providing a specific location.
-                The location can also be a 2-tuple giving the coordinates of the lower-left corner of the legend in
-                axes coordinates (in which case bbox_to_anchor will be ignored).
-                For back-compatibility, 'center right' (but no other location) can also be spelled 'right', and each
-                 "string" location can also be given as a numeric value:
+        Parameters
+        ----------
+        kwargs
+            additionals parameters for the legend
+            (see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html)
 
-        - bbox_to_anchorBboxBase, 2-tuple, or 4-tuple of floats
-            Box that is used to position the legend in conjunction with loc.
-            Defaults to axes.bbox (if called as a method to Axes.legend) or figure.bbox (if Figure.legend).
-            This argument allows arbitrary placement of the legend.
-            Bbox coordinates are interpreted in the coordinate system given by bbox_transform, with the default
-            transform Axes or Figure coordinates, depending on which legend is called.
-            If a 4-tuple or BboxBase is given, then it specifies the bbox (x, y, width, height) that the legend is
-            placed in. To put the legend in the best location in the bottom right quadrant of the Axes (or figure):
+            - locstr  default: rcParams["legend.loc"] (default: 'best')  The location of the legend.
+                    The strings 'upper left', 'upper right', 'lower left', 'lower right' place the legend at
+                     the corresponding corner of the axes.
+                    The strings 'upper center', 'lower center', 'center left', 'center right' place the
+                     legend at the center of the corresponding edge of the axes.
+                    The string 'center' places the legend at the center of the axes.
+                    The string 'best' places the legend at the location, among the nine locations defined so far, with the
+                     minimum overlap with other drawn artists. This option can be quite slow for plots with large amounts
+                     of data; your plotting speed may benefit from providing a specific location.
+                    The location can also be a 2-tuple giving the coordinates of the lower-left corner of the legend in
+                    axes coordinates (in which case bbox_to_anchor will be ignored).
+                    For back-compatibility, 'center right' (but no other location) can also be spelled 'right', and each
+                     "string" location can also be given as a numeric value:
 
-        - loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5)
-        A 2-tuple (x, y) places the corner of the legend specified by loc at x, y. For example,
-         to put the legend's upper right-hand corner in the center of the Axes (or figure)
-         the following keywords can be used: loc='upper right', bbox_to_anchor=(0.5, 0.5)
+            - bbox_to_anchorBboxBase, 2-tuple, or 4-tuple of floats
+                Box that is used to position the legend in conjunction with loc.
+                Defaults to axes.bbox (if called as a method to Axes.legend) or figure.bbox (if Figure.legend).
+                This argument allows arbitrary placement of the legend.
+                Bbox coordinates are interpreted in the coordinate system given by bbox_transform, with the default
+                transform Axes or Figure coordinates, depending on which legend is called.
+                If a 4-tuple or BboxBase is given, then it specifies the bbox (x, y, width, height) that the legend is
+                placed in. To put the legend in the best location in the bottom right quadrant of the Axes (or figure):
 
-        - ncolsint, default: 1 : The number of columns that the legend has.
-        For backward compatibility, the spelling ncol is also supported but it is discouraged.
-         If both are given, ncols takes precedence.
+            - loc='best', bbox_to_anchor=(0.5, 0., 0.5, 0.5)
+            A 2-tuple (x, y) places the corner of the legend specified by loc at x, y. For example,
+             to put the legend's upper right-hand corner in the center of the Axes (or figure)
+             the following keywords can be used: loc='upper right', bbox_to_anchor=(0.5, 0.5)
+
+            - ncolsint, default: 1 : The number of columns that the legend has.
+            For backward compatibility, the spelling ncol is also supported but it is discouraged.
+             If both are given, ncols takes precedence.
 
 
-        - fontsize int or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
-            The font size of the legend. If the value is numeric the size will be the absolute font size in points.
-            String values are relative to the current default font size. This argument is only used if prop
-             is not specified.
+            - fontsize int or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'}
+                The font size of the legend. If the value is numeric the size will be the absolute font size in points.
+                String values are relative to the current default font size. This argument is only used if prop
+                 is not specified.
 
-        - labelcolorstr or list, default: rcParams["legend.labelcolor"] (default: 'None')
-            The color of the text in the legend. Either a valid color string (for example, 'red'),
-             or a list of color strings. The labelcolor can also be made to match the color of the line or marker using
-              'linecolor', 'markerfacecolor' (or 'mfc'), or 'markeredgecolor' (or 'mec').
-            Labelcolor can be set globally using rcParams["legend.labelcolor"] (default: 'None').
-             If None, use rcParams["text.color"] (default: 'black').
+            - labelcolorstr or list, default: rcParams["legend.labelcolor"] (default: 'None')
+                The color of the text in the legend. Either a valid color string (for example, 'red'),
+                 or a list of color strings. The labelcolor can also be made to match the color of the line or marker using
+                  'linecolor', 'markerfacecolor' (or 'mfc'), or 'markeredgecolor' (or 'mec').
+                Labelcolor can be set globally using rcParams["legend.labelcolor"] (default: 'None').
+                 If None, use rcParams["text.color"] (default: 'black').
 
-        - numpointsint, default: rcParams["legend.numpoints"] (default: 1)
-            The number of marker points in the legend when creating a legend entry for a Line2D (line).
+            - numpointsint, default: rcParams["legend.numpoints"] (default: 1)
+                The number of marker points in the legend when creating a legend entry for a Line2D (line).
 
-        - scatterpointsint, default: rcParams["legend.scatterpoints"] (default: 1)
-            The number of marker points in the legend when creating a legend entry for a PathCollection (scatter plot).
+            - scatterpointsint, default: rcParams["legend.scatterpoints"] (default: 1)
+                The number of marker points in the legend when creating a legend entry for a PathCollection (scatter plot).
 
-        - scatteryoffsets : iterable of floats, default: [0.375, 0.5, 0.3125]
-            The vertical offset (relative to the font size) for the markers created for a scatter plot legend entry.
-            0.0 is at the base the legend text, and 1.0 is at the top. To draw all markers at the same height,
-            set to [0.5].
+            - scatteryoffsets : iterable of floats, default: [0.375, 0.5, 0.3125]
+                The vertical offset (relative to the font size) for the markers created for a scatter plot legend entry.
+                0.0 is at the base the legend text, and 1.0 is at the top. To draw all markers at the same height,
+                set to [0.5].
 
-        - markerscalefloat, default: rcParams["legend.markerscale"] (default: 1.0)
-        The relative size of legend markers compared to the originally drawn ones.
+            - markerscalefloat, default: rcParams["legend.markerscale"] (default: 1.0)
+            The relative size of legend markers compared to the originally drawn ones.
 
-        - markerfirstbool, default: True If True, legend marker is placed to the left of the legend label.
-        If False, legend marker is placed to the right of the legend label.
+            - markerfirstbool, default: True If True, legend marker is placed to the left of the legend label.
+            If False, legend marker is placed to the right of the legend label.
 
-        - reversebool, default: False  If True, the legend labels are displayed in reverse order from the input.
-         If False, the legend labels are displayed in the same order as the input.
-                Added in version 3.7.
+            - reversebool, default: False  If True, the legend labels are displayed in reverse order from the input.
+             If False, the legend labels are displayed in the same order as the input.
+                    Added in version 3.7.
 
-        - frameonbool, default: rcParams["legend.frameon"] (default: True)
-            Whether the legend should be drawn on a patch (frame).
+            - frameonbool, default: rcParams["legend.frameon"] (default: True)
+                Whether the legend should be drawn on a patch (frame).
 
-        - fancyboxbool, default: rcParams["legend.fancybox"] (default: True)
-            Whether round edges should be enabled around the FancyBboxPatch which makes up the legend's background.
+            - fancyboxbool, default: rcParams["legend.fancybox"] (default: True)
+                Whether round edges should be enabled around the FancyBboxPatch which makes up the legend's background.
 
-        - shadowNone, bool or dict, default: rcParams["legend.shadow"] (default: False)
-            Whether to draw a shadow behind the legend. The shadow can be configured using Patch keywords.
-            Customization via rcParams["legend.shadow"] (default: False) is currently not supported.
+            - shadowNone, bool or dict, default: rcParams["legend.shadow"] (default: False)
+                Whether to draw a shadow behind the legend. The shadow can be configured using Patch keywords.
+                Customization via rcParams["legend.shadow"] (default: False) is currently not supported.
 
-        - framealpha float, default: rcParams["legend.framealpha"] (default: 0.8)
-            The alpha transparency of the legend's background. If shadow is activated and framealpha is None,
-             the default value is ignored.
+            - framealpha float, default: rcParams["legend.framealpha"] (default: 0.8)
+                The alpha transparency of the legend's background. If shadow is activated and framealpha is None,
+                 the default value is ignored.
 
-        - facecolor "inherit" or color, default: rcParams["legend.facecolor"] (default: 'inherit')
-            The legend's background color. If "inherit", use rcParams["axes.facecolor"] (default: 'white').
+            - facecolor "inherit" or color, default: rcParams["legend.facecolor"] (default: 'inherit')
+                The legend's background color. If "inherit", use rcParams["axes.facecolor"] (default: 'white').
 
-        - edgecolor "inherit" or color, default: rcParams["legend.edgecolor"] (default: '0.8')
-            The legend's background patch edge color. If "inherit", use rcParams["axes.edgecolor"] (default: 'black').
+            - edgecolor "inherit" or color, default: rcParams["legend.edgecolor"] (default: '0.8')
+                The legend's background patch edge color. If "inherit", use rcParams["axes.edgecolor"] (default: 'black').
 
-        - mode : {"expand", None}
-            If mode is set to "expand" the legend will be horizontally expanded to fill the Axes area
-             (or bbox_to_anchor if defines the legend's size).
+            - mode : {"expand", None}
+                If mode is set to "expand" the legend will be horizontally expanded to fill the Axes area
+                 (or bbox_to_anchor if defines the legend's size).
 
-        - bbox_transformNone or Transform  The transform for the bounding box (bbox_to_anchor).
-        For a value of None (default) the Axes' transAxes transform will be used.
+            - bbox_transformNone or Transform  The transform for the bounding box (bbox_to_anchor).
+            For a value of None (default) the Axes' transAxes transform will be used.
 
-        - titlestr or None :  The legend's title. Default is no title (None).
+            - titlestr or None :  The legend's title. Default is no title (None).
 
-        - title_fontproperties : None or FontProperties or dict
-                The font properties of the legend's title. If None (default), the title_fontsize argument will be used
-                 if present; if title_fontsize is also None, the current rcParams["legend.title_fontsize"]
-                  (default: None) will be used.
+            - title_fontproperties : None or FontProperties or dict
+                    The font properties of the legend's title. If None (default), the title_fontsize argument will be used
+                     if present; if title_fontsize is also None, the current rcParams["legend.title_fontsize"]
+                      (default: None) will be used.
 
-        - title_fontsize int or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'},
-            default: rcParams["legend.title_fontsize"] (default: None)
-            The font size of the legend's title. Note: This cannot be combined with title_fontproperties.
-             If you want to set the fontsize alongside other font properties, use the size parameter
-              in title_fontproperties.
+            - title_fontsize int or {'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'},
+                default: rcParams["legend.title_fontsize"] (default: None)
+                The font size of the legend's title. Note: This cannot be combined with title_fontproperties.
+                 If you want to set the fontsize alongside other font properties, use the size parameter
+                  in title_fontproperties.
 
-        - alignment{'center', 'left', 'right'}, default: 'center'
-            The alignment of the legend title and the box of entries. The entries are aligned as a single block,
-            so that markers always lined up.
+            - alignment{'center', 'left', 'right'}, default: 'center'
+                The alignment of the legend title and the box of entries. The entries are aligned as a single block,
+                so that markers always lined up.
 
-        - borderpad float, default: rcParams["legend.borderpad"] (default: 0.4)
-            The fractional whitespace inside the legend border, in font-size units.
+            - borderpad float, default: rcParams["legend.borderpad"] (default: 0.4)
+                The fractional whitespace inside the legend border, in font-size units.
 
-        - labelspacing  float, default: rcParams["legend.labelspacing"] (default: 0.5)
-            The vertical space between the legend entries, in font-size units.
+            - labelspacing  float, default: rcParams["legend.labelspacing"] (default: 0.5)
+                The vertical space between the legend entries, in font-size units.
 
-        - handlelength float, default: rcParams["legend.handlelength"] (default: 2.0)
-            The length of the legend handles, in font-size units.
+            - handlelength float, default: rcParams["legend.handlelength"] (default: 2.0)
+                The length of the legend handles, in font-size units.
 
-        - handleheight float, default: rcParams["legend.handleheight"] (default: 0.7)
-            The height of the legend handles, in font-size units.
+            - handleheight float, default: rcParams["legend.handleheight"] (default: 0.7)
+                The height of the legend handles, in font-size units.
 
-        - handletextpad float, default: rcParams["legend.handletextpad"] (default: 0.8)
-            The pad between the legend handle and text, in font-size units.
+            - handletextpad float, default: rcParams["legend.handletextpad"] (default: 0.8)
+                The pad between the legend handle and text, in font-size units.
 
-        - borderaxespad float, default: rcParams["legend.borderaxespad"] (default: 0.5)
-            The pad between the Axes and legend border, in font-size units.
+            - borderaxespad float, default: rcParams["legend.borderaxespad"] (default: 0.5)
+                The pad between the Axes and legend border, in font-size units.
 
-        - columnspacing float, default: rcParams["legend.columnspacing"] (default: 2.0)
-            The spacing between columns, in font-size units.
+            - columnspacing float, default: rcParams["legend.columnspacing"] (default: 2.0)
+                The spacing between columns, in font-size units.
 
-        - draggablebool, default: False
-            Whether the legend can be dragged with the mouse.
-        :return: None
+            - draggablebool, default: False
+                Whether the legend can be dragged with the mouse.
+
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+        matplotlib.pyplot.legend
+
         """
-        self.param_legende.update(dico)
+        self.param_legende.update(kwargs)
 
-    def config_labels_contours(self, **dico) -> None:
+    def config_labels_contours(self, **kwargs) -> None:
         """
+        
         Additionals configurations for the contours labels
-        see : https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.clabel.html
-        :param dico:
+        
+        Parameters
+        ----------
+        kwargs
+            
             - fontsize str or float, default: rcParams["font.size"] (default: 10.0)
                 Size in points or relative size e.g., 'smaller', 'x-large'.
                 See plt.Text.set_size for accepted string values.
@@ -2822,117 +3663,139 @@ function : a user-defined function which takes a 1D array of values, and outputs
 
             - zorder float or None, default: (2 + contour.get_zorder())
                 zorder of the contour labels.
+        
+        Returns
+        -------
+        None
+        
+        See Also
+        -------
+        matplotlib.axes.Axes.clabel
 
-        :return: None
         """
-        self.param_labels_contours.update(dico)
+        self.param_labels_contours.update(kwargs)
 
-    def config_fig(self, **dico) -> None:
+    def config_fig(self, **kwargs) -> None:
         """
+
         Additionnals parameters to configure the Figure
-        :param dico:
 
-        - igsize2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
-            Figure dimension (width, height) in inches.
-        - dpi float, default: rcParams["figure.dpi"] (default: 100.0)
-            Dots per inch.
-        - facecolor default: rcParams["figure.facecolor"] (default: 'white')
-            The figure patch facecolor.
-        - edgecolor default: rcParams["figure.edgecolor"] (default: 'white')
-            The figure patch edge color.
-        - linewidthfloat
-            The linewidth of the frame (i.e. the edge linewidth of the figure patch).
+        Parameters
+        ----------
+        kwargs
+            - figsize2 : tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
+                Figure dimension (width, height) in inches.
+            - dpi float, default: rcParams["figure.dpi"] (default: 100.0)
+                Dots per inch.
+            - facecolor default: rcParams["figure.facecolor"] (default: 'white')
+                The figure patch facecolor.
+            - edgecolor default: rcParams["figure.edgecolor"] (default: 'white')
+                The figure patch edge color.
+            - linewidthfloat
+                The linewidth of the frame (i.e. the edge linewidth of the figure patch).
 
-        - frameonbool, default: rcParams["figure.frameon"] (default: True)
-            If False, suppress drawing the figure background patch.
+            - frameonbool, default: rcParams["figure.frameon"] (default: True)
+                If False, suppress drawing the figure background patch.
 
-        - layout {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}, default: None
+            - layout {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}, default: None
 
-            The layout mechanism for positioning of plot elements to avoid overlapping Axes decorations
-             (labels, ticks, etc). Note that layout managers can have significant performance penalties.
+                The layout mechanism for positioning of plot elements to avoid overlapping Axes decorations
+                 (labels, ticks, etc). Note that layout managers can have significant performance penalties.
 
-                'constrained': The constrained layout solver adjusts Axes sizes to avoid overlapping Axes decorations.
-                Can handle complex plot layouts and colorbars, and is thus recommended.
+                    'constrained': The constrained layout solver adjusts Axes sizes to avoid overlapping Axes decorations.
+                    Can handle complex plot layouts and colorbars, and is thus recommended.
 
-                See Constrained layout guide for examples.
+                    See Constrained layout guide for examples.
 
-                'compressed': uses the same algorithm as 'constrained', but removes extra space between
-                 fixed-aspect-ratio Axes. Best for simple grids of Axes.
+                    'compressed': uses the same algorithm as 'constrained', but removes extra space between
+                     fixed-aspect-ratio Axes. Best for simple grids of Axes.
 
-                'tight': Use the tight layout mechanism. This is a relatively simple algorithm that adjusts the subplot
-                parameters so that decorations do not overlap.
+                    'tight': Use the tight layout mechanism. This is a relatively simple algorithm that adjusts the subplot
+                    parameters so that decorations do not overlap.
 
-                See Tight layout guide for examples.
+                    See Tight layout guide for examples.
 
-                'none': Do not use a layout engine.
+                    'none': Do not use a layout engine.
 
-                A LayoutEngine instance. Builtin layout classes are ConstrainedLayoutEngine and TightLayoutEngine,
-                more easily accessible by 'constrained' and 'tight'. Passing an instance allows third parties to provide
-                 their own layout engine.
+                    A LayoutEngine instance. Builtin layout classes are ConstrainedLayoutEngine and TightLayoutEngine,
+                    more easily accessible by 'constrained' and 'tight'. Passing an instance allows third parties to provide
+                     their own layout engine.
 
-            If not given, fall back to using the parameters tight_layout and constrained_layout, including their config
-            defaults rcParams["figure.autolayout"] (default: False) and rcParams["figure.constrained_layout.use"]
-            (default: False).
+                If not given, fall back to using the parameters tight_layout and constrained_layout, including their config
+                defaults rcParams["figure.autolayout"] (default: False) and rcParams["figure.constrained_layout.use"]
+                (default: False).
 
-        - alpha scalar or None
+            - alpha scalar or None
 
-        - animated bool
+            - animated bool
 
-        - clip_on bool
+            - clip_on bool
 
-        - constrained_layout unknown
+            - constrained_layout unknown
 
-        - constrained_layout_pads unknown
+            - constrained_layout_pads unknown
 
-        - dpi float
+            - dpi float
 
-        - edgecolor color
+            - edgecolor color
 
-        - facecolor color
+            - facecolor color
 
-        - figheight float
+            - figheight float
 
-        - figwidth float
+            - figwidth float
 
-        - frameon bool
+            - frameon bool
 
-        - gid str
+            - gid str
 
-        - in_layout bool
+            - in_layout bool
 
-        - layout_engine  {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}
+            - layout_engine  {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}
 
-        - linewidth number
+            - linewidth number
 
-        - mouseover bool
+            - mouseover bool
 
-        - picker None or bool or float or callable
+            - picker None or bool or float or callable
 
-        - rasterized bool
+            - rasterized bool
 
-        - size_inches  (float, float) or float
+            - size_inches  (float, float) or float
 
-        - sketch_params (scale: float, length: float, randomness: float)
+            - sketch_params (scale: float, length: float, randomness: float)
 
-        - snap bool or None
+            - snap bool or None
 
-        - tight_layout
+            - tight_layout
 
-        - url str
+            - url str
 
-        - visible bool
+            - visible bool
 
-        - zorder float
+            - zorder float
 
-        :return:
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+
+        matplotlib.pyplot.Figure
+
         """
-        self.param_fig.update(dico)
+        self.param_fig.update(kwargs)
 
-    def config_enrg_fig(self, **dico) -> None:
+    def config_enrg_fig(self, **kwargs) -> None:
         """
+
         Additionals parameters for the Figure saving
-    see https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.savefig.html#matplotlib.figure.Figure.savefig
-        :param dico:
+
+        Parameters
+        ----------
+        kwargs
+
             - igsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
                 Figure dimension (width, height) in inches.
 
@@ -3032,45 +3895,70 @@ function : a user-defined function which takes a 1D array of values, and outputs
             - visible bool
 
             - zorder float
-        :return: None
-        """
-        self.param_enrg_fig.update(dico)
 
-    def config_font(self, **dico) -> None:
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+
+        matplotlib.figure.Figure.savefig
+
         """
+        self.param_enrg_fig.update(kwargs)
+
+    def config_font(self, **kwargs) -> None:
+        """
+
         Global font parameter
-        :param dico
+
+        Parameters
+        ----------
+        kwargs
             'family' : 'fantasy','monospace','sans-serif','serif','cursive'
             'styles' : 'normal', 'italic', 'oblique'
             'size' : valeur numérique
             'variants' : 'normal', 'small-caps'
             'weight' : 'light', 'normal', 'medium', 'semibold', 'bold', 'heavy', 'black'
--       :return None
+
+        Returns
+        -------
+
         """
-        k: list[str] = dico.keys()
-        vals: list = dico.values()
-        dico: dict = {}
+        k: list[str] = kwargs.keys()
+        vals: list = kwargs.values()
+        kwargs: dict = {}
         for K, L in zip(k, vals):
             if "font." not in K:
-                dico['font.' + K] = L
+                kwargs['font.' + K] = L
             else:
-                dico[K] = L
-        self.param_font.update(dico)
+                kwargs[K] = L
+        self.param_font.update(kwargs)
 
     def config_colorbar(self, index_colorbar: int = ii_max, ticks: list | np.ndarray | None = None,
-                        **dico) -> None:
+                        **kwargs) -> None:
         """
+
         Colorbar additianal parameter
-        :param index_colorbar:
+
+        Parameters
+        ----------
+        index_colorbar : int, optional
             The index of the colorbar (default the parameters are added for all colorbars)
-            0 is the index of the image's colorbar
-        :param ticks: The colorbar's ticks. If None, ticks are determined automatically from the input.
-        :param dico: the parameter dictionary
-        :return:
+        ticks : list[float] | array_like
+            The colorbar's ticks. If None, ticks are determined automatically from the input.
+        kwargs
+            the parameter dictionary
+
+        Returns
+        -------
+        None
+
         """
         if index_colorbar == ii_max:
             for d in self.param_colorbar:
-                d.update(dico)
+                d.update(kwargs)
             if ticks is not None and len(ticks) > 0:
                 self.ticks_colorbar = [ticks for t in self.ticks_colorbar]
             elif ticks is not None:
@@ -3080,12 +3968,18 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 self.ticks_colorbar[index_colorbar] = ticks
             elif ticks is not None:
                 self.ticks_colorbar[index_colorbar] = [-np.inf]
-            self.param_colorbar[index_colorbar].update(dico)
+            self.param_colorbar[index_colorbar].update(kwargs)
 
     def dark_background(self) -> None:
         """
+
         Put a dark background on the figure
-        :return: None
+
+        Returns
+        -------
+
+        None
+
         """
         self.style = 'dark_background'
         for d in self.param_lines:
@@ -3100,8 +3994,11 @@ function : a user-defined function which takes a 1D array of values, and outputs
 
     def default_style(self) -> None:
         """
-        Use de default style
-        :return: None
+        Use default style
+        Returns
+        -------
+            None
+
         """
         self.style = 'default'
         for d in self.param_lines:
@@ -3119,7 +4016,10 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def plot_colorbar(self) -> None:
         """
         Plot the custom colorbar(s) if it(they) exists
-        :return: None
+        Returns
+        -------
+            None
+
         """
         if self.custum_colorbar_colors is not None:
             # share_axis: np.array[int] = np.full(len(self.custum_colorbar_colors), -1)
@@ -3132,92 +4032,92 @@ function : a user-defined function which takes a 1D array of values, and outputs
             bottom: list[int] = []
             sb: np.float64 = 0.
 
-            size_colorbar: np.float64 = 0.01
+            size_colorbar: np.float64 = 0.02
             size_legend: np.float64 = 10 * size_colorbar
             size_space: np.float64 = 0.
             for i in range(len(self.custum_colorbar_colors)):
-                if "location" not in self.param_colorbar[i + 1] or self.param_colorbar[i + 1]["location"] == "right":
+                if "location" not in self.param_colorbar[i] or self.param_colorbar[i]["location"] == "right":
                     right.append(i)
                     if len(right) == 1:
-                        self.param_colorbar[i + 1]["share_axis"] = True
-                    if "size" in self.param_colorbar[i + 1].keys():
-                        sr += self.param_colorbar[i + 1]["size"]
+                        self.param_colorbar[i]["share_axis"] = True
+                    if "size" in self.param_colorbar[i].keys():
+                        sr += self.param_colorbar[i]["size"]
                     else:
                         sr += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i + 1].keys()
-                            or not self.param_colorbar[i + 1]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i + 1].keys():
-                            sr += self.param_colorbar[i + 1]["size_legend"]
-                        elif "size" in self.param_colorbar[i + 1].keys():
-                            sr += self.param_colorbar[i + 1]["size"] * size_legend / size_colorbar
+                    if ("share_axis" not in self.param_colorbar[i].keys()
+                            or not self.param_colorbar[i]["share_axis"]):
+                        if "size_legend" in self.param_colorbar[i].keys():
+                            sr += self.param_colorbar[i]["size_legend"]
+                        elif "size" in self.param_colorbar[i].keys():
+                            sr += self.param_colorbar[i]["size"] * size_legend / size_colorbar
                         else:
                             sr += size_legend
-                    if "space_between" in self.param_colorbar[i + 1].keys():
-                        sr += self.param_colorbar[i + 1]["space_between"]
+                    if "space_between" in self.param_colorbar[i].keys():
+                        sr += self.param_colorbar[i]["space_between"]
                     else:
                         sr += size_space
-                elif self.param_colorbar[i + 1]["location"] == "top":
+                elif self.param_colorbar[i]["location"] == "top":
                     top.append(i)
                     if len(top) == 1:
-                        self.param_colorbar[i + 1]["share_axis"] = True
-                    if "size" in self.param_colorbar[i + 1].keys():
-                        st += self.param_colorbar[i + 1]["size"]
+                        self.param_colorbar[i]["share_axis"] = True
+                    if "size" in self.param_colorbar[i].keys():
+                        st += self.param_colorbar[i]["size"]
                     else:
                         st += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i + 1].keys()
-                            or not self.param_colorbar[i + 1]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i + 1].keys():
-                            st += self.param_colorbar[i + 1]["size_legend"]
-                        elif "size" in self.param_colorbar[i + 1].keys():
-                            st += self.param_colorbar[i + 1]["size"] * size_legend / size_colorbar
+                    if ("share_axis" not in self.param_colorbar[i].keys()
+                            or not self.param_colorbar[i]["share_axis"]):
+                        if "size_legend" in self.param_colorbar[i].keys():
+                            st += self.param_colorbar[i]["size_legend"]
+                        elif "size" in self.param_colorbar[i].keys():
+                            st += self.param_colorbar[i]["size"] * size_legend / size_colorbar
                         else:
                             st += size_legend
-                    if "space_between" in self.param_colorbar[i + 1].keys():
-                        st += self.param_colorbar[i + 1]["space_between"]
+                    if "space_between" in self.param_colorbar[i].keys():
+                        st += self.param_colorbar[i]["space_between"]
                     else:
                         st += size_space
-                elif self.param_colorbar[i + 1]["location"] == "left":
+                elif self.param_colorbar[i]["location"] == "left":
                     left.append(i)
                     if len(left) == 1:
-                        self.param_colorbar[i + 1]["share_axis"] = True
-                    if "size" in self.param_colorbar[i + 1].keys():
-                        sl += self.param_colorbar[i + 1]["size"]
+                        self.param_colorbar[i]["share_axis"] = True
+                    if "size" in self.param_colorbar[i].keys():
+                        sl += self.param_colorbar[i]["size"]
                     else:
                         sl += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i + 1].keys()
-                            or not self.param_colorbar[i + 1]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i + 1].keys():
-                            sl += self.param_colorbar[i + 1]["size_legend"]
-                        elif "size" in self.param_colorbar[i + 1].keys():
-                            sl += self.param_colorbar[i + 1]["size"] * size_legend / size_colorbar
+                    if ("share_axis" not in self.param_colorbar[i].keys()
+                            or not self.param_colorbar[i]["share_axis"]):
+                        if "size_legend" in self.param_colorbar[i].keys():
+                            sl += self.param_colorbar[i]["size_legend"]
+                        elif "size" in self.param_colorbar[i].keys():
+                            sl += self.param_colorbar[i]["size"] * size_legend / size_colorbar
                         else:
                             sl += size_legend
-                    if "space_between" in self.param_colorbar[i + 1].keys():
-                        sl += self.param_colorbar[i + 1]["space_between"]
+                    if "space_between" in self.param_colorbar[i].keys():
+                        sl += self.param_colorbar[i]["space_between"]
                     else:
                         sl += size_space
-                elif self.param_colorbar[i + 1]["location"] == "bottom":
+                elif self.param_colorbar[i]["location"] == "bottom":
                     bottom.append(i)
                     if len(bottom) == 1:
-                        self.param_colorbar[i + 1]["share_axis"] = True
-                    if "size" in self.param_colorbar[i + 1].keys():
-                        sb += self.param_colorbar[i + 1]["size"]
+                        self.param_colorbar[i]["share_axis"] = True
+                    if "size" in self.param_colorbar[i].keys():
+                        sb += self.param_colorbar[i]["size"]
                     else:
                         sb += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i + 1].keys()
-                            or not self.param_colorbar[i + 1]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i + 1].keys():
-                            sb += self.param_colorbar[i + 1]["size_legend"]
-                        elif "size" in self.param_colorbar[i + 1].keys():
-                            sb += self.param_colorbar[i + 1]["size"] * size_legend / size_colorbar
+                    if ("share_axis" not in self.param_colorbar[i].keys()
+                            or not self.param_colorbar[i]["share_axis"]):
+                        if "size_legend" in self.param_colorbar[i].keys():
+                            sb += self.param_colorbar[i]["size_legend"]
+                        elif "size" in self.param_colorbar[i].keys():
+                            sb += self.param_colorbar[i]["size"] * size_legend / size_colorbar
                         else:
                             sb += size_legend
-                    if "space_between" in self.param_colorbar[i + 1].keys():
-                        sb += self.param_colorbar[i + 1]["space_between"]
+                    if "space_between" in self.param_colorbar[i].keys():
+                        sb += self.param_colorbar[i]["space_between"]
                     else:
                         sb += size_space
                 else:
-                    raise UserWarning("Graphique.plot_colorbar : the location ", self.param_colorbar[i + 1]["location"],
+                    raise UserWarning("Graphique.plot_colorbar : the location ", self.param_colorbar[i]["location"],
                                       "isn't awalible. Please use right, top, left, bottom")
 
             pos_r: np.float64 = 1.
@@ -3227,7 +4127,7 @@ function : a user-defined function which takes a 1D array of values, and outputs
             for (i, ii) in zip(right, np.arange(len(right))):
                 cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
                 norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i + 1].copy()
+                params: dict = self.param_colorbar[i].copy()
                 fmt: str = ""
                 if "format" in params.keys():
                     fmt = params["format"]
@@ -3236,8 +4136,8 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 if "ticks_labels" in params.keys():
                     ticks_labels = params["ticks_label"]
                     del params["ticks_label"]
-                elif fmt != "" and len(self.ticks_colorbar[i + 1]) != 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i + 1]]
+                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
                 scale: str = "linear"
                 if "scale" in params.keys():
                     scale = params["scale"]
@@ -3282,20 +4182,22 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 #     cax.sharey = self.colorbar[-1].ax
                 self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
                                                        cax=cax, **params))
-                if len(self.ticks_colorbar[i + 1]) == 0 and scale != "linear":
+                self.cmap.append(cmap)
+                self.norms.append(norm)
+                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
                     self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i + 1]) > 0
-                      and self.ticks_colorbar[i + 1][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i+1], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i + 1])
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] == - np.inf:
+                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                      and self.ticks_colorbar[i][0] > - np.inf):
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
                     self.colorbar[-1].set_ticks(ticks=[])
 
             for (i, ii) in zip(top, np.arange(len(right))):
                 cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
                 norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i + 1].copy()
+                params: dict = self.param_colorbar[i].copy()
                 fmt: str = ""
                 if "format" in params.keys():
                     fmt = params["format"]
@@ -3304,8 +4206,8 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 if "ticks_labels" in params.keys():
                     ticks_labels = params["ticks_label"]
                     del params["ticks_label"]
-                elif fmt != "" and len(self.ticks_colorbar[i + 1]) != 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i + 1]]
+                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
                 scale: str = "linear"
                 if "scale" in params.keys():
                     scale = params["scale"]
@@ -3332,7 +4234,7 @@ function : a user-defined function which takes a 1D array of values, and outputs
                     del params["size_legend"]
                 elif not share_axis:
                     size += size_legend
-                if  "space_between" in params.keys():
+                if "space_between" in params.keys():
                     size += params["space_between"]
                     del params["space_between"]
                 elif not share_axis:
@@ -3351,20 +4253,22 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 #     cax.sharey = self.colorbar[-1].ax
                 self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
                                                        cax=cax, **params))
-                if len(self.ticks_colorbar[i + 1]) == 0 and scale != "linear":
+                self.cmap.append(cmap)
+                self.norms.append(norm)
+                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
                     self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i + 1]) > 0
-                      and self.ticks_colorbar[i + 1][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i+1], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i + 1])
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] == - np.inf:
+                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                      and self.ticks_colorbar[i][0] > - np.inf):
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
                     self.colorbar[-1].set_ticks(ticks=[])
 
             for (i, ii) in zip(left, np.arange(len(right))):
                 cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
                 norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i + 1].copy()
+                params: dict = self.param_colorbar[i].copy()
                 fmt: str = ""
                 if "format" in params.keys():
                     fmt = params["format"]
@@ -3373,9 +4277,9 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 if "ticks_labels" in params.keys():
                     ticks_labels = params["ticks_label"]
                     del params["ticks_label"]
-                elif fmt != "" and len(self.ticks_colorbar[i + 1]) != 0 and self.ticks_colorbar[i + 1][
+                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][
                     0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i + 1]]
+                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
                 scale: str = "linear"
                 if "scale" in params.keys():
                     scale = params["scale"]
@@ -3386,7 +4290,6 @@ function : a user-defined function which takes a 1D array of values, and outputs
                     del params["share_axis"]
                 if "location" in params.keys():
                     del params["location"]
-
 
                 fraction: np.float64 = 1
                 if "fraction" in params.keys():
@@ -3422,20 +4325,22 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 #     cax.sharey = self.colorbar[-1].ax
                 self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
                                                        cax=cax, **params))
-                if len(self.ticks_colorbar[i + 1]) == 0 and scale != "linear":
+                self.cmap.append(cmap)
+                self.norms.append(norm)
+                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
                     self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i + 1]) > 0
-                      and self.ticks_colorbar[i + 1][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i + 1], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i + 1])
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] == - np.inf:
+                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                      and self.ticks_colorbar[i][0] > - np.inf):
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
                     self.colorbar[-1].set_ticks(ticks=[])
 
             for (i, ii) in zip(bottom, np.arange(len(right))):
                 cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
                 norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i + 1].copy()
+                params: dict = self.param_colorbar[i].copy()
                 fmt: str = ""
                 if "format" in params.keys():
                     fmt = params["format"]
@@ -3444,8 +4349,8 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 if "ticks_labels" in params.keys():
                     ticks_labels = params["ticks_label"]
                     del params["ticks_label"]
-                elif fmt != "" and len(self.ticks_colorbar[i + 1]) != 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i + 1]]
+                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
                 scale: str = "linear"
                 if "scale" in params.keys():
                     scale = params["scale"]
@@ -3489,47 +4394,49 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 #     cax.sharey = self.colorbar[-1].ax
                 self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
                                                        cax=cax, **params))
-                if len(self.ticks_colorbar[i + 1]) == 0 and scale != "linear":
+                self.cmap.append(cmap)
+                self.norms.append(norm)
+                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
                     self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i + 1]) > 0
-                      and self.ticks_colorbar[i + 1][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i+1], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i + 1])
-                elif len(self.ticks_colorbar[i + 1]) > 0 and self.ticks_colorbar[i + 1][0] == - np.inf:
+                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                      and self.ticks_colorbar[i][0] > - np.inf):
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
                     self.colorbar[-1].set_ticks(ticks=[])
 
             if len(right) > 0:
-                if "space_between" in self.param_colorbar[right[-1] + 1].keys():
-                    sr += self.param_colorbar[right[-1] + 1]["space_between"]
-                elif "size" in self.param_colorbar[right[-1] + 1].keys():
-                    sr += self.param_colorbar[right[-1] + 1]["size"] / 2.
+                if "space_between" in self.param_colorbar[right[-1]].keys():
+                    sr += self.param_colorbar[right[-1]]["space_between"]
+                elif "size" in self.param_colorbar[right[-1]].keys():
+                    sr += self.param_colorbar[right[-1]]["size"] / 2.
                 else:
                     sr += size_colorbar / 2
             if len(top) > 0:
-                if "space_between" in self.param_colorbar[top[-1] + 1].keys():
-                    st += self.param_colorbar[top[-1] + 1]["space_between"]
-                elif "size" in self.param_colorbar[top[-1] + 1].keys():
-                    st += self.param_colorbar[top[-1] + 1]["size"] / 2.
+                if "space_between" in self.param_colorbar[top[-1]].keys():
+                    st += self.param_colorbar[top[-1]]["space_between"]
+                elif "size" in self.param_colorbar[top[-1]].keys():
+                    st += self.param_colorbar[top[-1]]["size"] / 2.
                 else:
                     st += size_colorbar / 2.
             if len(left) > 0:
-                if "space_between" in self.param_colorbar[left[-1] + 1].keys():
-                    sl += self.param_colorbar[left[-1] + 1]["space_between"]
-                    pos_l += self.param_colorbar[left[-1] + 1]["space_between"]
-                elif "size" in self.param_colorbar[left[-1] + 1].keys():
-                    sl += self.param_colorbar[left[-1] + 1]["size"] / 2.
-                    pos_l += self.param_colorbar[left[-1] + 1]["size"] / 2.
+                if "space_between" in self.param_colorbar[left[-1]].keys():
+                    sl += self.param_colorbar[left[-1]]["space_between"]
+                    pos_l += self.param_colorbar[left[-1]]["space_between"]
+                elif "size" in self.param_colorbar[left[-1]].keys():
+                    sl += self.param_colorbar[left[-1]]["size"] / 2.
+                    pos_l += self.param_colorbar[left[-1]]["size"] / 2.
                 else:
                     sl += size_colorbar / 2
                     pos_l += size_colorbar / 2
             if len(bottom) > 0:
-                if "space_between" in self.param_colorbar[bottom[-1] + 1].keys():
-                    sb += self.param_colorbar[bottom[-1] + 1]["space_between"]
-                    pos_b += self.param_colorbar[bottom[-1] + 1]["space_between"]
-                elif "size" in self.param_colorbar[bottom[-1] + 1].keys():
-                    sb += self.param_colorbar[bottom[-1] + 1]["size"] / 2.
-                    pos_b += self.param_colorbar[bottom[-1] + 1]["size"] / 2.
+                if "space_between" in self.param_colorbar[bottom[-1]].keys():
+                    sb += self.param_colorbar[bottom[-1]]["space_between"]
+                    pos_b += self.param_colorbar[bottom[-1]]["space_between"]
+                elif "size" in self.param_colorbar[bottom[-1]].keys():
+                    sb += self.param_colorbar[bottom[-1]]["size"] / 2.
+                    pos_b += self.param_colorbar[bottom[-1]]["size"] / 2.
                 else:
                     sb += size_colorbar / 2
                     pos_b += size_colorbar / 2
@@ -3549,7 +4456,10 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def plot_lines(self) -> None:
         """
         Plot all the line of the Graphique
-        :return: None
+        Returns
+        -------
+            None
+
         """
         with mpl.rc_context(self.param_font):
             if self.ax is None:
@@ -3558,18 +4468,23 @@ function : a user-defined function which takes a 1D array of values, and outputs
                     self.axes = [self.ax]
                 else:
                     self.axes.append(self.ax)
-            for i in range(len(self.lines_x)):
+            index: np.ndarray[int] = np.arange(0, len(self.lines_x))
+            if len(self.indexs_plot_lines) > 0:
+                index = np.array(self.indexs_plot_lines)
+            for i in index:
                 if len(self.param_lines[i]) > 0:
                     if len(self.err_y[i]) > 0:
-                        if isinstance(self.err_x[i], list | np.ndarray) and len(self.err_x) == 0:
+                        if isinstance(self.err_x[i], list | np.ndarray) and len(self.err_x[i]) == 0:
                             err_x = None
                         else:
                             err_x = self.err_x[i]
+
                         self.ax.errorbar(
                             x=self.lines_x[i], y=self.lines_y[i], xerr=err_x,
                             yerr=self.err_y[i], **self.param_lines[i])
                     else:
-                        if "color" in self.param_lines[i] and isinstance(self.param_lines[i]["color"], list | np.ndarray):
+                        if "color" in self.param_lines[i] and isinstance(self.param_lines[i]["color"],
+                                                                         list | np.ndarray):
                             kwargs = self.param_lines[i].copy()
                             marker: str = ""
                             if "marker" in kwargs.keys():
@@ -3577,8 +4492,8 @@ function : a user-defined function which takes a 1D array of values, and outputs
                                 del kwargs["marker"]
 
                             self.ax.scatter(
-                                    self.lines_x[i], self.lines_y[i], marker=marker, **kwargs)
-                            if not("linestyle" in kwargs.keys()) or kwargs["linestyle"] != "":
+                                self.lines_x[i], self.lines_y[i], marker=marker, **kwargs)
+                            if not ("linestyle" in kwargs.keys()) or kwargs["linestyle"] != "":
                                 colors = [to_rgba(c) for c in self.param_lines[i]["color"]]
 
                                 del kwargs["color"]
@@ -3606,7 +4521,10 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def plot_texts(self) -> None:
         """
         Plot all the texts of the Graphique
-        :return:
+        Returns
+        -------
+            None
+
         """
         with mpl.rc_context(self.param_font):
             if self.ax is None:
@@ -3616,13 +4534,16 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 else:
                     self.axes.append(self.ax)
             for i in range(len(self.lines_t_x)):
-                for (X, Y, S) in zip(self.lines_t_x[i], self.lines_t_y[i], self.lines_t_s[i]):
-                    self.ax.text(X, Y, S, **self.param_texts[i])
+                # for (X, Y, S) in zip(self.lines_t_x[i], self.lines_t_y[i], self.lines_t_s[i]):
+                self.ax.text(self.lines_t_x[i], self.lines_t_y[i], self.lines_t_s[i], **self.param_texts[i])
 
     def plot_histogrammes(self) -> None:
         """
         Plot the Graphique's histogramme (if there is one)
-        :return: None
+        Returns
+        -------
+            None
+
         """
         with mpl.rc_context(self.param_font):
             # Axe creation
@@ -3663,8 +4584,11 @@ function : a user-defined function which takes a 1D array of values, and outputs
 
     def plot_image(self) -> None:
         """
-        PLot the Graphique's image (if there is one)
-        :return: None
+        Plot the Graphique's image (if there is one)
+        Returns
+        -------
+            None
+
         """
         with mpl.rc_context(self.param_font):
             if self.ax is None:
@@ -3674,107 +4598,113 @@ function : a user-defined function which takes a 1D array of values, and outputs
                 else:
                     self.axes.append(self.ax)
             param_tableau: dict = self.param_image.copy()
-            if ("scale" in self.param_colorbar[0].keys()
-                    and self.param_colorbar[0]["scale"] == "log"):
-                if "vmin" in param_tableau.keys():
-                    vmin = param_tableau["vmin"]
-                    del param_tableau["vmin"]
-                else:
-                    vmin = self.array_image.min()
-                if "vmax" in param_tableau.keys():
-                    vmax = param_tableau["vmax"]
-                    del param_tableau["vmax"]
-                else:
-                    vmax = self.array_image.max()
-                if len(self.array_image.shape) == 2:
-                    carte_xy = self.ax.pcolor(self.x_axe_image,
-                                              self.y_axe_image, self.array_image,
-                                              norm=LogNorm(vmin=vmin,
-                                                           vmax=vmax),
-                                              **param_tableau)
-                else:
-                    if "cmap" in param_tableau:
-                        del param_tableau["cmap"]
-                    if self.array_image.shape[2] == 3:
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, :, 0],
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Reds", **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, :, 1],
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Greens", **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, :, 2],
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Blues", **param_tableau)
-                    elif self.array_image.shape[1] == 3:
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, 0, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax), cmap="Reds",
-                                       **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, 1, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Greens", **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[:, 2, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Blues", **param_tableau)
-                    else:
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[0, :, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax), cmap="Reds",
-                                       **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[1, :, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Greens", **param_tableau)
-                        self.ax.pcolor(self.x_axe_image,
-                                       self.y_axe_image, self.array_image[2, :, :].T,
-                                       norm=LogNorm(vmin=vmin, vmax=vmax),
-                                       cmap="Blues", **param_tableau)
+            # if ("scale" in self.param_colorbar[0].keys()
+            #         and self.param_colorbar[0]["scale"] == "log"):
+            #     if "vmin" in param_tableau.keys():
+            #         vmin = param_tableau["vmin"]
+            #         del param_tableau["vmin"]
+            #     else:
+            #         vmin = self.array_image.min()
+            #     if "vmax" in param_tableau.keys():
+            #         vmax = param_tableau["vmax"]
+            #         del param_tableau["vmax"]
+            #     else:
+            #         vmax = self.array_image.max()
+            #     if len(self.array_image.shape) == 2:
+            #         carte_xy = self.ax.pcolor(self.x_axe_image,
+            #                                   self.y_axe_image, self.array_image,
+            #                                   norm=LogNorm(vmin=vmin,
+            #                                                vmax=vmax),
+            #                                   **param_tableau)
+            #     else:
+            #         if "cmap" in param_tableau:
+            #             del param_tableau["cmap"]
+            #         if self.array_image.shape[2] == 3:
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, :, 0],
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Reds", **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, :, 1],
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Greens", **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, :, 2],
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Blues", **param_tableau)
+            #         elif self.array_image.shape[1] == 3:
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, 0, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax), cmap="Reds",
+            #                            **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, 1, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Greens", **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[:, 2, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Blues", **param_tableau)
+            #         else:
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[0, :, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax), cmap="Reds",
+            #                            **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[1, :, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Greens", **param_tableau)
+            #             self.ax.pcolor(self.x_axe_image,
+            #                            self.y_axe_image, self.array_image[2, :, :].T,
+            #                            norm=LogNorm(vmin=vmin, vmax=vmax),
+            #                            cmap="Blues", **param_tableau)
+            # else:
+            if len(self.array_image.shape) == 2:
+                self.ax.pcolor(self.x_axe_image,
+                               self.y_axe_image, self.array_image,
+                               cmap=self.cmap[self.index_colorbar_image[0]],
+                               norm=self.norms[self.index_colorbar_image[0]],
+                               **param_tableau)
             else:
-                if len(self.array_image.shape) == 2:
-                    carte_xy = self.ax.pcolor(self.x_axe_image,
-                                              self.y_axe_image, self.array_image,
-                                              **param_tableau)
-                else:
+                self.ax.imshow(self.array_image)
+                # if "cmap" in param_tableau:
+                #     del param_tableau["cmap"]
+                # self.ax.pcolor(self.x_axe_image,
+                #                self.y_axe_image, self.array_image[:, :, 0],
+                #                cmap="Reds", **param_tableau)
+                # self.ax.pcolor(self.x_axe_image,
+                #                self.y_axe_image, self.array_image[:, :, 1],
+                #                cmap="Greens", **param_tableau)
+                # self.ax.pcolor(self.x_axe_image,
+                #                self.y_axe_image, self.array_image[:, :, 2],
+                #                cmap="Blues", **param_tableau)
 
-                    if "cmap" in param_tableau:
-                        del param_tableau["cmap"]
-                    self.ax.pcolor(self.x_axe_image,
-                                   self.y_axe_image, self.array_image[:, :, 0],
-                                   cmap="Reds", **param_tableau)
-                    self.ax.pcolor(self.x_axe_image,
-                                   self.y_axe_image, self.array_image[:, :, 1],
-                                   cmap="Greens", **param_tableau)
-                    self.ax.pcolor(self.x_axe_image,
-                                   self.y_axe_image, self.array_image[:, :, 2],
-                                   cmap="Blues", **param_tableau)
-            params_cb: dict = self.param_colorbar[0].copy()
-            if len(self.ticks_colorbar[0]) > 0:
-                params_cb["ticks"] = self.ticks_colorbar[0]
-            if 'scale' in params_cb.keys():
-                del params_cb['scale']
+            # params_cb: dict = self.param_colorbar[0].copy()
+            # if len(self.ticks_colorbar[0]) > 0:
+            #     params_cb["ticks"] = self.ticks_colorbar[0]
+            # if 'scale' in params_cb.keys():
+            #     del params_cb['scale']
 
-            if "hide" in params_cb.keys() and not params_cb["hide"]:
-                del params_cb["hide"]
-            if 'hide' not in params_cb.keys():
-                if self.fig is None:
-                    self.colorbar = plt.colorbar(carte_xy,
-                                                 **params_cb)
-                    # self.fig.colorbar(carte_xy)
-                else:
-                    self.colorbar = plt.colorbar(carte_xy,
-                                                 **params_cb)
-            if self.title != "":
-                self.ax.set_title(self.title)
+            # if "hide" in params_cb.keys() and not params_cb["hide"]:
+            #     del params_cb["hide"]
+            # if 'hide' not in params_cb.keys():
+            #     if self.fig is None:
+            #         self.colorbar = plt.colorbar(carte_xy,
+            #                                      **params_cb)
+            #         # self.fig.colorbar(carte_xy)
+            #     else:
+            #         self.colorbar = plt.colorbar(carte_xy,
+            #                                      **params_cb)
+            # if self.title != "":
+            #     self.ax.set_title(self.title)
 
     def plot_contours(self) -> None:
         """
         Plot the Graphique's contours (if there are)
-        :return: None
+        Returns
+        -------
+            None
+
         """
         params: dict = self.param_contours.copy()
         if len(self.color_label_contours) > 0:
@@ -3826,7 +4756,10 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def plot_polygones(self) -> None:
         """
         Plot the Graphique's polygones (if there are)
-        :return: None
+        Returns
+        -------
+        None
+
         """
         with mpl.rc_context(self.param_font):
             for i in range(len(self.index_polygons)):
@@ -3837,9 +4770,17 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def plot(self, in_Multigraph: bool = False) -> None:
         """
         Plot all the Graphique's elements
-        :param in_Multigraph: If the Graphique is plotted a Multigraph, it deactivate globals parameters such as
-        the police or the style. Default: False
-        :return: None
+
+        Parameters
+        ----------
+        in_Multigraph: bool, optional, default=False
+            If the Graphique is plotted in a Multigraph, it deactivate globals parameters such as
+        the police or the style.
+
+        Returns
+        -------
+            None
+
         """
         param_font: dict = {}
         if not in_Multigraph:
@@ -3920,10 +4861,14 @@ function : a user-defined function which takes a 1D array of values, and outputs
         """
         Save the image product by the Graphique's plotting, not the Graphique itself.
         The image is saved on the Graphiqu's format (default .png)
-        :param args: Additionals parameters for the Figure saving
+
+        Parameters
+        ----------
+        args
+            Additionals parameters for the Figure saving
             see https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.savefig.html#matplotlib.figure.Figure.savefig
 
-            - igsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
+            - figsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
                 Figure dimension (width, height) in inches.
 
             - dpi float, default: rcParams["figure.dpi"] (default: 100.0)
@@ -4022,7 +4967,11 @@ function : a user-defined function which takes a 1D array of values, and outputs
             - visible bool
 
             - zorder float
-        :return:
+
+        Returns
+        -------
+        None
+
         """
         args_enrg = self.param_enrg_fig.copy()
         args_enrg.update(args)
@@ -4038,7 +4987,11 @@ function : a user-defined function which takes a 1D array of values, and outputs
     def show(self) -> None:
         """
         Show the Graphique
-        :return: None
+
+        Returns
+        -------
+            None
+
         """
         # plt.ion()
         self.plot()
@@ -4056,194 +5009,399 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = True,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, **kwargs) -> Graphique:
+         show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to plt.plot with a small improvement:
+    Equivalent to plt.plot
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The coresponding new Graphique
+
+    See Also
+    --------
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
-            `'`plt.plot(x, y1, *args)
-            plt.plot(x, y2, *args)`
+        - "self.line(x,[y1,y2], *args)" is equivalent to
+            plt.plot(x, y1, *args)
+            plt.plot(x, y2, *args)
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            "self.line([x1,x2],[y1, y2], *args)"
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
-         is equivalent to
-            `plt.plot(x, y1, marker=".", label="Curve1")
-            plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+            "self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"])"
+            is equivalent to :
+            "plt.plot(x, y1, marker=".", label="Curve1")
+            plt.plot(x, y2, marker=".", label="Curve2")"
+
+
+    Examples
+    --------
+    >>> x = np.linspace(0, 10, 1000)
+    >>> alpha = np.linspace(1, 5, 10)
+    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+    >>> gr = line(x, [x*a for a in alpha], color=colors)
+    >>> gr.customized_cmap(alpha, colors)
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-               scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+               scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, hide=hide, **kwargs)
     if show:
         graph.show()
     return graph
 
 
 def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
-             marker: str = "", scale: str = "", show: bool = True,
+             marker: str = "", scale: str = "", show: bool = True,  hide: bool = False,
              **kwargs: dict) -> Graphique:
     """
     Equivalent to plt.errorbar
-    :param x: Abscissa
-    :param y: Ordinate
-    :param err_y: Error associated with y
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param scale: The scales of (x, y) axis : default : "" (linear scale for both x and y
+
+    Parameters
+    ----------
+    x : list | array_like
+        Abscissa
+    y : list | array_like
+        Ordinate
+    err_y : list | array_like
+        Error associated with y
+    err_x : list | array_like
+        Error associated with x
+    marker : list[str] | array_like[str], str, optional, default=""
+        The marker (ex ".", ",", "o", "v"...)
+        see matplotlib documentation for all the possibility
+    scale : str, optional, default="linear"
+        The scales of (x, y) axis :
+        - default : "" (linear scale for both x and y)
         - polar : polar projection : X=R and Y=Theta
         - loglog, logx, logy : Logarithmic scale for both, x or y axis
         - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
-    :param show: If True (default), show the Graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: None
+
+    show : bool, optional, default = True
+        To show the Graphique
+    hide: bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
     """
     graph: Graphique = Graphique()
-    graph.errorbar(x=x, y=y, err_y=err_y, marker=marker, scale=scale, **kwargs)
+    graph.errorbar(x=x, y=y, err_y=err_y, marker=marker, scale=scale, hide=hide, **kwargs)
     if show:
         graph.show()
     return graph
 
 
 def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
-              marker: str = "", scale: str = "", show: bool = True,
+              marker: str = "", scale: str = "", show: bool = True, hide: bool = False,
               **kwargs: dict) -> Graphique:
     """
-    Equivalent to plt.errorplot
-    :param x: Abscissa
-    :param y: Ordinate
-    :param err_y: Error associated with y
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param scale: The scales of (x, y) axis : default : "" (linear scale for both x and y
+    Equivalent to plt.errorbar but the error is not represented by errorbars but by a
+    uniform-colored polygon
+
+    Parameters
+    ----------
+    x : list | array_like
+        Abscissa
+    y : list | array_like
+        Ordinate
+    err_y : list | array_like
+        Error associated with y
+    marker : list[str] | array_like[str], str, optional, default=""
+        The marker (ex ".", ",", "o", "v"...)
+        see matplotlib documentation for all the possibility
+    scale : str, optional, default="linear"
+        The scales of (x, y) axis :
+        - default : "" (linear scale for both x and y)
         - polar : polar projection : X=R and Y=Theta
         - loglog, logx, logy : Logarithmic scale for both, x or y axis
         - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
-    :param show: If True (default), show the Graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: None
+
+    show : bool, optional, default = True
+        To show the Graphique
+    hide: bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
     """
     graph: Graphique = Graphique()
-    graph.errorplot(x=x, y=y, err_y=err_y, marker=marker, scale=scale, **kwargs)
+    graph.errorplot(x=x, y=y, err_y=err_y, marker=marker, scale=scale, hide=hide, **kwargs)
     if show:
         graph.show()
     return graph
 
 
-def polare(R: list | np.ndarray, Theta: list | np.ndarray,
-           z: np.ndarray | list | None = None, marker: str = "",
-           share_colorbar: bool = True, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-           show: bool = True, **kwargs: dict) -> Graphique:
+def polar(R: list | np.ndarray, Theta: list | np.ndarray,
+          z: np.ndarray | list | None = None, marker: str = "",
+          share_colorbar: bool = True, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+          show: bool = True, hide: bool = False, **kwargs: dict) -> Graphique:
     """
     Equivalent to line in polar projection
-    Attention: The order is opposit to the matplotlib one :
+
+    Parameters
+    ----------
+    R : list | array_like
+        Radius
+    Theta : list | array_like
+        Angle(s)
+    z : list | array_like, optional
+        z-axis (represented by a colorscale)
+    marker:  : list[str] | array_like, str, optional, default=""
+        The marker (ex ".", ",", "o", "v"...)
+        see matplotlib documentation for all the possibility
+    share_colorbar : bool, optional, default=True
+        If True(default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z: str, optional, {"linear", "log", "symlog"}, default="linear"
+        The scale of the z-axis (linear (default), log, symplog)
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar: dict
+        Extra arguments for the colorbar (if z is not None)
+    kwargs
+        Additional argument to plot() function like linestyle, color...
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    Notes
+    -------
+    The order of first and second arguments is opposit to the matplotlib one :
     The first argument is the radius, then the angle
-    :param R: Radius
-    :param Theta: Angle(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: If True (default), show the Graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The corresponding graphique
+
     """
     graph: Graphique = Graphique()
     graph.polar(R, Theta, z=z, marker=marker, share_colorbar=share_colorbar,
-                scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
 
 
 def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
-         z: np.ndarray | list | None = None,
-         marker: str | list = "", share_colorbar: bool = True,
-         scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, **kwargs) -> Graphique:
+           z: np.ndarray | list | None = None,
+           marker: str | list = "", share_colorbar: bool = True,
+           scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+           show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for both axis:
+    Equivalent to line with a logarithmique scale for both x and y-axis:
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
+        - `line(x,[y1,y2], *args)` is equivalent to
             `'`plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.linspace(0, 10, 1000)
+    >>> alpha = np.linspace(1, 5, 10)
+    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+    >>> gr: Graphique = loglog(x, [x*a for a in alpha], color=colors)
+    >>> gr.customized_cmap(alpha, colors)
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.loglog(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                 scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                 scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
 
 
 def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
-         z: np.ndarray | list | None = None,
-         marker: str | list = "", share_colorbar: bool = True,
-         scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, **kwargs) -> Graphique:
+              z: np.ndarray | list | None = None,
+              marker: str | list = "", share_colorbar: bool = True,
+              scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+              show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for the both-axis (both positive and negative
-    cases are represanted):
+    Equivalent to line with a logarithmique scale for both x and y-axis
+    Both the negative and positive parts of y are represanted:
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
+        - `line(x,[y1,y2], *args)` is equivalent to
             `'`plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.linspace(-10, 10, 1000)
+    >>> gr = symloglog(x, np.tan(x))
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.symloglog(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                    scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                    scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
@@ -4253,36 +5411,81 @@ def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = True,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, **kwargs) -> Graphique:
+         show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for the x-axis:
+    Equivalent to line with a logarithmique scale for x-axis:
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
+        - `line(x,[y1,y2], *args)` is equivalent to
             `'`plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.logspace(-10, 10, 1000)
+    >>> gr = Graphique()
+    >>> gr.logx(x, np.arctan(x))
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.logx(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-               scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+               scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
@@ -4292,37 +5495,82 @@ def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
             marker: str | list = "", share_colorbar: bool = True,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-            show: bool = True, **kwargs) -> Graphique:
+            show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for the x-axis (both positive and negative
-    cases are represanted):
+    Equivalent to line with a logarithmique scale for both x-axis (both negative and positive
+    part are represanted):
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
+        - `line(x,[y1,y2], *args)` is equivalent to
             `'`plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.append(-np.logspace(10, -10, 1000), np.logspace(-10, 10, 1000))
+    >>> gr = Graphique()
+    >>> gr.symlogx(x, np.arctan(x))
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.symlogx(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
@@ -4332,36 +5580,81 @@ def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = True,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, **kwargs) -> Graphique:
+         show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for the y-axis:
+
+    Equivalent to line with a logarithmique scale for y-axis:
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+        z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+        If True (default) and z is not None, only one colorscale is used
+        even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logx : Graphique.line in log coordinate for x axis and linear for y axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+    Graphique.symlogy : Similar to Graphique.logy but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
+        - `line(x,[y1,y2], *args)` is equivalent to
             `'`plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.logspace(-10, 10, 1000)
+    >>> gr = logy(x, np.arctan(x))
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.logy(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-               scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+               scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
@@ -4371,37 +5664,80 @@ def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
             marker: str | list = "", share_colorbar: bool = True,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-            show: bool = True, **kwargs) -> Graphique:
+            show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
-    Equivalent to line with a logaritmic scale for the x-axis (both positive and negative
-    cases are represanted):
+    Equivalent to line with a logarithmique scale for y-axis (both positive and negative
+    part are represanted):
+
+    Parameters
+    ----------
+    x : array_like | list
+        Abscissa(s)
+    y : array_like | list, optional
+        Ordinate(s), if None x became the ordinate and the abscissa is arange(len(x))
+    z : array_like | list, optional
+         z-axis (represented by a colorscale)
+    marker : str | list[str] | array_like[str], optional, default=""
+        The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
+    share_colorbar : bool, optional, default=True
+         If True (default) and z is not None, only one colorscale is used
+         even if z is in two dimensions
+    scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
+        The scale of the z-axis
+    show : bool, optional, default = True
+        To show the Graphique
+    hide : bool, optional, default=False
+        If True then the new line(s) is/are not plotted with the Graphique.
+        To plot them, then change the plot order with self.set_indexs_plot_lines
+    kwargs_colorbar, optional
+        Extra arguments for the colorbar (if z is not None)
+    kwargs, optional
+        Additional argument to plot() function like linestyle, color....
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See Also
+    --------
+    Graphique.line : Build line(s) for the Graphique
+    Graphique.loglog : Graphique.line in log coordinate for boths x and y axis
+    Graphique.logy : Graphique.line in log coordinate for y axis and linear for x axis
+    Graphique.point : To plot a single point
+    Graphique.errorbar : To plot a line with errorbars
+    Graphique.errorplot : To plot a line with errorbars represanted as filled area
+    Graphique.polar : To plot a line in polar coordinates
+    Graphique.symloglog : Similar to Graphique.loglog but boths negatives and positives values are represanted
+    Graphique.symlogx : Similar to Graphique.logx but boths negatives and positives values are represanted
+
+    Notes
+    -------
+    This function has a small improuvment compared with plt.plot :
+
     if y is in two dimensions, the second dimension is plotted :
-        - `self.line(x,[y1,y2], *args)` is equivalent to
-            `'`plt.plot(x, y1, *args)
+        - `line(x,[y1,y2], *args)` is equivalent to
+            `plt.plot(x, y1, *args)
             plt.plot(x, y2, *args)`
         - if y1 and y2 have not the same size:
-            `self.line([x1,x2],[y1, y2], *args)`
+            `line([x1,x2],[y1, y2], *args)`
         - If others arguments are list of the same size of x and y, they are also split :
-            `self.line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
+            `line((x1, x2], [y1, y2], marker=".", label=["Curve1", "Curve2"]`
          is equivalent to
             `plt.plot(x, y1, marker=".", label="Curve1")
             plt.plot(x, y2, marker=".", label="Curve2")`
-    :param x: Abscissa(s)
-    :param y: Ordinate(s)
-    :param z: z-axis (represented by a colorscale)
-    :param marker: The marker (default="" (no marker), ex ".", ",", "o", "v"...
-     see matplotlib documentation for all the possibility
-    :param share_colorbar: If True(default) and z is not None, only one colorscale is used
-    even if z is in two dimensions
-    :param scale_z: The scale of the z-axis (linear (default), log, symplog)
-    :param kwargs_colorbar: Extra arguments for the colorbar (if z is not None)
-    :param show: Is True (default), show the graphique
-    :param kwargs: Additional argument to plot() function like linestyle, color....
-    :return: The coresponding new Graphique
+
+
+    Examples
+    --------
+    >>> x = np.linspace(0,np.pi,1000)
+    >>> gr = gr.symlogy(x, np.tan(x))
+    >>> gr.show()
+
     """
     graph: Graphique = Graphique()
     graph.symlogy(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
-                  scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, **kwargs)
+                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, **kwargs)
     if show:
         graph.show()
     return graph
@@ -4412,25 +5748,45 @@ def histogram(values: np.ndarray, weights: np.ndarray | None = None,
               show: bool = True, **args) -> Graphique:
     """
     Plot the histogram of values
-    :param values: The values to histogramed
-    :param weights: The weights to be applied to values (default one)
-    :param normalization: If the histogram is normalized or not
-    :param statistic: The statistic to compute (default is 'sum'). The following statistics are available:
-'mean': compute the mean of values for points within each bin. Empty bins will be represented by NaN.
-'std': compute the standard deviation within each bin. This is implicitly calculated with ddof=0.
-'median': compute the median of values for points within each bin. Empty bins will be represented by NaN.
-'count': compute the count of points within each bin. This is identical to an unweighted histogram. values array is not
-referenced.
-'sum': compute the sum of values for points within each bin. This is identical to a weighted histogram.
-'min': compute the minimum of values for points within each bin. Empty bins will be represented by NaN.
-'max': compute the maximum of values for point within each bin. Empty bins will be represented by NaN.
-function : a user-defined function which takes a 1D array of values, and outputs a single numerical statistic.
-This function will be called on the values in each bin. Empty bins will be represented by function([]),
-or NaN if this returns an error.
-    :param bins: Number of bins in the histogram
-    :param show: If True (default), show the Graphique
-    :param args: Additionals argument for `sp.binned_statistic`
-    :return: The corresponding Graphique
+
+    Parameters
+    ----------
+    values : array_like
+        The values to histogramed
+    weights : array_like, optional
+        The weights to be applied to values
+    normalization : bool, optional, default=True
+        If the histogram is normalized or not
+    statistic : str, optional, default="sum"
+        The statistic to compute (default is 'sum').
+        The following statistics are available:
+            - 'mean': compute the mean of values for points within each bin. Empty bins will be represented by NaN.
+            - 'std': compute the standard deviation within each bin. This is implicitly calculated with ddof=0.
+            - 'median': compute the median of values for points within each bin. Empty bins will be represented by NaN.
+            - 'count': compute the count of points within each bin. This is identical to an unweighted histogram. values array is not
+            referenced.
+            - 'sum': compute the sum of values for points within each bin. This is identical to a weighted histogram.
+            - 'min': compute the minimum of values for points within each bin. Empty bins will be represented by NaN.
+            - 'max': compute the maximum of values for point within each bin. Empty bins will be represented by NaN.
+
+    bins : int, optional, default=10
+        Number of bins in the histogram
+    stat_args, dict, optional
+        Additionals argument for `sp.binned_statistic`
+    show : bool, optional, default = True
+        To show the Graphique
+    kwargs
+         Additionals argument for plt.bars
+
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
+    See also
+    -------
+    scipy.stats.binned_statistic
+
     """
     if weights is None:
         poids = []
@@ -4447,12 +5803,69 @@ def image(array_image: np.ndarray,
           x_axe: list | np.ndarray, y_axe: list | np.ndarray,
           show: bool = True, **args) -> Graphique:
     """
-    Plot the array image through plt.pcolor
-    :param array_image: The matrix (2D) to be plotted
-    :param x_axe: the x-axes coordinate (for the array)
-    :param y_axe: the y-axes coordinate (for the array)
-    :param args: Additionals arguments for pcolor
-    :return: The corresponding Graphique
+
+    Plot the array image through plt.pcolor or plt.imshow for 3 color images
+
+    Parameters
+    ----------
+    array_image : np.ndarray
+        The matrix (2D, or 3D for colored images (the color is on the third axis)) to be plotted
+    x_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[0])
+        The x-axes coordinate (for the array), only for 2d array_image
+    y_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[1])
+        The y-axes coordinate (for the array), only for 2d array_image
+    colorscale : str, optional, default="linear", {"linear", "log", "symlog"}
+        The scale for the colorbar
+    cmap : str, optional, default="default"
+        The colormap, default a linear color interpolation between two colors CX
+    colorbar_ticks : list | array_like, optional
+        The colorbar's ticks
+    colorbar_label : str, optional, default=""
+        The colorbar's label
+    kwargs_colorbar : dict, optional
+        Additional arguments for the colorbar :
+            - location: str, {'right', 'top', 'bottom', 'left'}
+                Indicate where the colorbar should be plotted
+            - scale: str, {'linear', 'log', 'symlog'}
+                The scale of the colorbar
+            - ticks: list | array_like
+            - format: str
+                ticks' format
+            - label: str
+                The label to plot along the colorbar
+            - size: float, default=0.01
+                relative width of the colorbar
+            - fraction: float, default=1
+                relative hight of the colorbar
+            - space_between: float, default=0.01
+                relative space between colorsbars (and the plot)
+
+    colorbar_index : int, optional
+        The index of a previouly defined colorbar, to use insted of building a new one, all the others colorbar are
+        ignored if provided
+    vmin : np.float64, optional, default : the minimum of array_image
+        The minimum value for the colorbar
+    vmax : np.float64, optional, default : the maximum of array_image
+        The maximum value for the colorbar
+    show : bool, optional, default = True
+        To show the Graphique
+    kwargs
+        Additionals arguments for pcolor
+
+    Returns
+    -------
+        None
+
+    See Also
+    --------
+
+    matplotlib.pyplot.pcolor
+        Use to plot 2d array images
+    matplotlib.pyplot.imshow
+        Use to plot 3-colors images
+    Graphique.contours
+        To draw levels lines onto the image
+
     """
     graph: Graphique = Graphique()
     graph.image(array_image=array_image, x_axe=x_axe, y_axe=y_axe, **args)
@@ -4464,28 +5877,48 @@ def image(array_image: np.ndarray,
 def level_surface(x: np.ndarray | list, y: np.ndarray | list,
                   vals: np.ndarray | list, npix_x: int = 400, npix_y: int = 400,
                   logx: bool = False, logy: bool = False,
-                  method: str = 'cubic', log_vals: bool = False, show: bool=True,
-                  **args) -> Graphique:
+                  method: str = 'cubic', log_vals: bool = False, show: bool = True,
+                  **kwargs) -> Graphique:
     """
+
     Returns an image representing the 2d contour line associated with the points
     points defined by x, y, vals
 
-    x: np.ndarray | list list of size n and dimension 1
-    containing the abscissa of the points
-    y: np.ndarray | list list of size n and dimension 1
-    containing the odrides of the points
-    val: np.ndarray | list list of size n and dimension 1
-    containing point values to be interpolated and displayed
-    npix_x: int: number of image pixels on x axis
-    npix_y: int: number of image pixels on y axis
-    logx: bool: indicates whether the x axis is logarithmically subdivided or not
-    logy: bool: indicates whether the y axis is logarithmically subdivided or not
-    log_val: bool: indicates whether values are displayed (and extrapolated) on a logarithmic scale or not.
+    Parameters
+    ----------
+    x : np.ndarray | list
+        list of size n and dimension 1
+        containing the abscissa of the points
+    y : np.ndarray | list
+        list of size n and dimension 1
+        containing the odrides of the points
+    vals : np.ndarray | list
+        list of size n and dimension 1
+        containing point values to be interpolated and displayed
+    npix_x : int, optional, default = 400
+        number of image pixels on x axis
+    npix_y : int, optional, default = 400
+        number of image pixels on y axis
+    logx : bool, optional, default = False
+        indicates whether the x axis is logarithmically subdivided or not
+    logy : bool, optional, default = False
+        indicates whether the y axis is logarithmically subdivided or not
+    method : str, optional, default = "cubic
+        interplotation method: 'nearest', 'linear' where by default
+    'cubic'. See doc scipy.interpolate.griddata
+    log_vals : bool, optional, default = False
+        indicates whether values are displayed (and extrapolated) on a logarithmic scale or not.
     on a logarithmic scale
-    method: str: interplotation method: 'nearest', 'linear' where by default
-    cubic'. See doc scipy.interpolate.griddata
-    show: bool: To show the graphique (default=True)
-    args: dict: dictionaries of complementary arguments to images
+    show : bool, optional, default = True
+        To show the Graphique (default=True)
+    kwargs
+        dictionaries of complementary arguments to images
+        
+    Returns
+    -------
+    Graphique
+        The new Graphique
+
     """
     points: np.ndarray = np.array([x, y]).T
     if logx:
@@ -4506,7 +5939,7 @@ def level_surface(x: np.ndarray | list, y: np.ndarray | list,
         tab: np.ndarray = griddata(points, vals, xi=(xi_x, xi_y), method=method)
 
     res: Graphique = image(tab, x_int, y_int, shading='nearest', show=False,
-                           **args)
+                           **kwargs)
     res.config_colorbar(scale="log")
     if show:
         res.show()
@@ -4515,10 +5948,27 @@ def level_surface(x: np.ndarray | list, y: np.ndarray | list,
 
 class Multigraph:
     """
-    To plot multiples Graphiques in one Figure
+    To plot multiples Graphiques in a single Figure
+
     """
-    
+
     def __init__(self, nrows: int = 1, ncols: int = 1, filename: str = "", directory: str = ""):
+        """
+        To build a Multigraph
+
+        Parameters
+        ----------
+        nrows : int, optional, default=1
+            Numbers of rows in the array containing the Graphiques
+        ncols : int, optional, default=1
+            Numbers of collumns in the array containing the Graphiques
+        filename : str, optyional, default=""
+            To load an existing Multigraph (if not "")
+        directory : str, optyional, default=""
+            The directory of the loaded Multigraph, if filename != "". If filename
+            alreaday contain the total path, the directory is automaticaly deduced
+
+        """
         if '.npz' in filename:
             filename = filename[:-4]
 
@@ -4546,7 +5996,7 @@ class Multigraph:
         self.list_sharex_axis_coord: list[int | tuple] = []
         self.list_sharey_axis_coord: list[int | tuple] = []
         self.param_subplot: list[dict] = []
-        self.occupy_coordinates: list[list[int]] = [] # List of coordinates of the occupy slots to test if a Graphique
+        self.occupy_coordinates: list[list[int]] = []  # List of coordinates of the occupy slots to test if a Graphique
         # could be added with a new set of coordinate
         self.fig = None
         if filename != "":
@@ -4569,9 +6019,24 @@ class Multigraph:
 
     def load_dict(self, values_to_load: dict) -> None:
         """
+
         load a Graphix contain in a dictionary
-        :param values_to_load:
-        :return:
+
+        Parameters
+        ----------
+        values_to_load : dict
+            Dictionary containing all the information needed to build a Multigraph.
+            This dictionary is produced by Multigraph.to_dict()
+
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+        Multigraph.to_dict
+            Produce a dictionary that can be used to build a new Multigraph
+
         """
         if "ext" in values_to_load.keys():
             self.ext: str = values_to_load["ext"]
@@ -4604,7 +6069,19 @@ class Multigraph:
 
     def to_dict(self) -> dict:
         """
-        :return: a dictionary to be saved with np.saved_compressed
+
+        Build a dictionary to be saved with np.saved_compressed
+
+        Returns
+        -------
+        dict
+
+        See Also
+        -------
+
+        Multigraph.load_dict
+            To load the produced dictionary in another Multigraph
+
         """
         enrg: dict = dict()  # Dictionary containing all the necessary information :
         # Used like :  np.savez_compressed(name_fichier,**enrg)
@@ -4626,15 +6103,24 @@ class Multigraph:
 
         return enrg
 
-    def save(self, filename: str = "graph_without_name", directory: str = None) -> None:
+    def save(self, filename: str = "mgraph_without_name", directory: str = None) -> None:
         """
-        Save the Multigraph in self.directory (default the current working directory) in npz compress
+        Save the Multi.graph in self.directory (default the current working directory) in npz compressed
         format.
-        :param filename: The name of the .npz file (default: "graph_without_name")
-        :param directory: Graphique's directory (default self.directory (default : the curent working directory))
-        :return: None
+
+        Parameters
+        ----------
+        filename: str, optinal, default="mgraph_without_name"
+            The name of the .npz file (default: "mgraph_without_name")
+        directory: str, optional, default="./"
+            Graphique's directory (default self.directory (default : the curent working directory))
+
+        Returns
+        -------
+        None
+
         """
-        if filename != "graph_without_name":
+        if filename != "mgraph_without_name":
             if ".npz" in filename:
                 self.filename = filename[:-4]
             else:
@@ -4659,21 +6145,35 @@ class Multigraph:
 
     def add_graphique(self, coord: int | list[int, tuple], graph: Graphique = None,
                       sharex: int | list[int, tuple] = None,
-                      sharey: int | list[int, tuple] = None, **args):
+                      sharey: int | list[int, tuple] = None, **kwargs):
         """
+        To add a new Graphique in the Multigraph at the coordinates defined by coord.
+        This Graphique can cover several slots
 
-        :param coord: the Graphique's coordinates : if self.nrows or nself.ncols =1 it can be an int, either a list
-         of int :
-        [index_rows, index_cols]. If this Graphique extend on severals slots, coord should be on this form :
-        [(index_rows_min, index_rows_max), (index_cols_min, index_cols_min)]
-        :param graph: The Graphique to add, default a new empty Graphique is created
-        :param sharex: Coordinates of the Graphique to wich the x axis is shared if needed. The corresponding Graphique
-         should already be in the Multigraph. If the new Graphique is on multiples slots then the Graphique to which the
-          coordinates are shared should occupy the same number of raw.
-        :param sharey: Coordinates of the Graphique to wich the y axis is shared if needed. The corresponding Graphique
-         should already be in the Multigraph. If the new Graphique is on multiples slots then the Graphique to which the
-          coordinates are shared should occupy the same number of cols
-        :return:
+        Parameters
+        ----------
+        coord : int | list[int, tuple]
+            the Graphique's coordinates : if self.nrows or nself.ncols =1 it can be an int, either a list
+            of int :
+            [index_rows, index_cols]. If this Graphique extend on severals slots, coord should be on this form :
+            [(index_rows_min, index_rows_max), (index_cols_min, index_cols_min)]
+        graph : Graphique, optional, default : an empty Graphique
+            The Graphique to add, default a new empty Graphique is created
+        sharex : int | list[int, tuple], optional
+            Coordinates of the Graphique to wich the x axis is shared if needed. The corresponding Graphique
+            should already be in the Multigraph. If the new Graphique is on multiples slots then the Graphique to which the
+            coordinates are shared should occupy the same number of raw.
+        sharey : int | list[int, tuple], optional
+            Coordinates of the Graphique to wich the y axis is shared if needed. The corresponding Graphique
+            should already be in the Multigraph. If the new Graphique is on multiples slots then the Graphique to which the
+            coordinates are shared should occupy the same number of cols
+        kwargs
+            Extra-parameters for plt.subplot
+
+        Returns
+        -------
+        None
+
         """
         if graph is None:
             graph = Graphique()
@@ -4744,10 +6244,11 @@ class Multigraph:
         if sharex is not None and sharex not in self.list_coords:
             raise UserWarning("Multigraph.add_graphique : there is no Graphique at the coordinates indicates"
                               " for the sharex parameter")
-        elif sharex is not None :
+        elif sharex is not None:
             if coord[1] != sharex[1]:
-                raise UserWarning("Multigraph.add_graphique : the second coordinates of the sharex Graphique doesn't match "
-                                  "with the new coordinates")
+                raise UserWarning(
+                    "Multigraph.add_graphique : the second coordinates of the sharex Graphique doesn't match "
+                    "with the new coordinates")
         else:
             sharex = [ii_max, ii_max]
 
@@ -4756,8 +6257,9 @@ class Multigraph:
                               " for the sharey parameter")
         elif sharey is not None:
             if coord[0] != sharey[0]:
-                raise UserWarning("Multigraph.add_graphique : the first coordinates of the sharey Graphique doesn't match "
-                                  "with the new coordinates")
+                raise UserWarning(
+                    "Multigraph.add_graphique : the first coordinates of the sharey Graphique doesn't match "
+                    "with the new coordinates")
         else:
             sharey = [ii_max, ii_max]
         self.occupy_coordinates.extend(occupy_coordinates)
@@ -4765,114 +6267,17 @@ class Multigraph:
         self.list_coords.append(coord)
         self.list_sharex_axis_coord.append(sharex)
         self.list_sharey_axis_coord.append(sharey)
-        self.param_subplot.append(args)
+        self.param_subplot.append(kwargs)
 
-    def config_fig(self, **dico) -> None:
+    def config_fig(self, **kwargs) -> None:
         """
-        Additionnals parameters to configure the Figure
-        :param dico:
 
-        - igsize2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
-            Figure dimension (width, height) in inches.
-        - dpi float, default: rcParams["figure.dpi"] (default: 100.0)
-            Dots per inch.
-        - facecolor default: rcParams["figure.facecolor"] (default: 'white')
-            The figure patch facecolor.
-        - edgecolor default: rcParams["figure.edgecolor"] (default: 'white')
-            The figure patch edge color.
-        - linewidthfloat
-            The linewidth of the frame (i.e. the edge linewidth of the figure patch).
-
-        - frameonbool, default: rcParams["figure.frameon"] (default: True)
-            If False, suppress drawing the figure background patch.
-
-        - layout {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}, default: None
-
-            The layout mechanism for positioning of plot elements to avoid overlapping Axes decorations
-             (labels, ticks, etc). Note that layout managers can have significant performance penalties.
-
-                'constrained': The constrained layout solver adjusts Axes sizes to avoid overlapping Axes decorations.
-                Can handle complex plot layouts and colorbars, and is thus recommended.
-
-                See Constrained layout guide for examples.
-
-                'compressed': uses the same algorithm as 'constrained', but removes extra space between
-                 fixed-aspect-ratio Axes. Best for simple grids of Axes.
-
-                'tight': Use the tight layout mechanism. This is a relatively simple algorithm that adjusts the subplot
-                parameters so that decorations do not overlap.
-
-                See Tight layout guide for examples.
-
-                'none': Do not use a layout engine.
-
-                A LayoutEngine instance. Builtin layout classes are ConstrainedLayoutEngine and TightLayoutEngine,
-                more easily accessible by 'constrained' and 'tight'. Passing an instance allows third parties to provide
-                 their own layout engine.
-
-            If not given, fall back to using the parameters tight_layout and constrained_layout, including their config
-            defaults rcParams["figure.autolayout"] (default: False) and rcParams["figure.constrained_layout.use"]
-            (default: False).
-
-        - alpha scalar or None
-
-        - animated bool
-
-        - clip_on bool
-
-        - constrained_layout unknown
-
-        - constrained_layout_pads unknown
-
-        - dpi float
-
-        - edgecolor color
-
-        - facecolor color
-
-        - figheight float
-
-        - figwidth float
-
-        - frameon bool
-
-        - gid str
-
-        - in_layout bool
-
-        - layout_engine  {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}
-
-        - linewidth number
-
-        - mouseover bool
-
-        - picker None or bool or float or callable
-
-        - rasterized bool
-
-        - size_inches  (float, float) or float
-
-        - sketch_params (scale: float, length: float, randomness: float)
-
-        - snap bool or None
-
-        - tight_layout
-
-        - url str
-
-        - visible bool
-
-        - zorder float
-
-        :return:
-        """
-        self.param_fig.update(dico)
-
-    def config_enrg_fig(self, **dico) -> None:
-        """
         Additionals parameters for the Figure saving
-    see https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.savefig.html#matplotlib.figure.Figure.savefig
-        :param dico:
+
+        Parameters
+        ----------
+        kwargs
+
             - igsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
                 Figure dimension (width, height) in inches.
 
@@ -4972,50 +6377,192 @@ class Multigraph:
             - visible bool
 
             - zorder float
-        :return: None
+
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+
+        matplotlib.figure.Figure.savefig
+
         """
-        self.param_enrg_fig.update(dico)
+        self.param_fig.update(kwargs)
+
+    def config_enrg_fig(self, **kwargs) -> None:
+        """
+
+        Additionals parameters for the Figure saving
+        see https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.savefig.html#matplotlib.figure.Figure.savefig
+
+        Parameters
+        ----------
+        kwargs
+            - figsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
+                Figure dimension (width, height) in inches.
+
+            - dpi float, default: rcParams["figure.dpi"] (default: 100.0)
+                Dots per inch.
+
+            - facecolor default: rcParams["figure.facecolor"] (default: 'white')
+                The figure patch facecolor.
+
+            - edgecolor default: rcParams["figure.edgecolor"] (default: 'white')
+                The figure patch edge color.
+
+            - linewidth float
+                The linewidth of the frame (i.e. the edge linewidth of the figure patch).
+
+            - frameon bool, default: rcParams["figure.frameon"] (default: True)
+                If False, suppress drawing the figure background patch.
+
+            - layout {'onstrained', 'compressed', 'tight', 'none', LayoutEngine, None}, default: None
+
+                The layout mechanism for positioning of plot elements to avoid overlapping Axes decorations
+                 (labels, ticks, etc). Note that layout managers can have significant performance penalties.
+
+                    -- 'constrained': The constrained layout solver adjusts Axes sizes to avoid overlapping Axes
+                     decorations. Can handle complex plot layouts and colorbars, and is thus recommended.
+
+                    See Constrained layout guide for examples.
+
+                    -- 'compressed': uses the same algorithm as 'constrained', but removes extra space between
+                    fixed-aspect-ratio Axes. Best for simple grids of Axes.
+
+                    -- 'tight': Use the tight layout mechanism. This is a relatively simple algorithm that adjusts the
+                     subplot parameters so that decorations do not overlap.
+
+                    See Tight layout guide for examples.
+
+                    'none': Do not use a layout engine.
+
+                    A LayoutEngine instance. Builtin layout classes are ConstrainedLayoutEngine and TightLayoutEngine,
+                     more easily accessible by 'constrained' and 'tight'. Passing an instance allows third parties to
+                      provide their own layout engine.
+
+                If not given, fall back to using the parameters tight_layout and constrained_layout, including their
+                 config defaults rcParams["figure.autolayout"] (default: False) and
+                 rcParams["figure.constrained_layout.use"] (default: False).
+
+            - alpha  scalar or None
+
+            - animated  bool
+
+            - clip_on bool
+
+            - constrained_layout  unknown
+
+            - constrained_layout_pads unknown
+
+            - dpi float
+
+            - edgecolor color
+
+            - facecolor  color
+
+            - figheight float
+
+            - figwidth float
+
+            - frameon bool
+
+            - gid str
+
+            - in_layout bool
+
+            - label object
+
+            - layout_engine {'constrained', 'compressed', 'tight', 'none', LayoutEngine, None}
+
+            - linewidth number
+
+            - mouseover bool
+
+            - picker None or bool or float
+
+            - rasterized bool
+
+            - size_inches (float, float) or float
+
+            - sketch_params (scale: float, length: float, randomness: float)
+
+            - snap bool or None
+
+            - tight_layout unknown
+
+            - transform  Transform
+
+            - url str
+
+            - visible bool
+
+            - zorder float
+
+        Returns
+        -------
+        None
+
+        """
+        self.param_enrg_fig.update(kwargs)
 
     def config_grid_spec(self, **dico) -> None:
         """
+
         Additionals parameters for the grid_spec
-    see https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html#matplotlib.gridspec.GridSpec
-        :param dico:
+
+        Parameters
+        ----------
+        dico
             - left, right, top, bottomfloat, optional : Extent of the subplots as a fraction of figure width or height.
             Left cannot be larger than right, and bottom cannot be larger than top.
             If not given, the values will be inferred from a figure or rcParams at draw time.
              See also GridSpec.get_subplot_params.
 
-             - wspace float, optional : The amount of width reserved for space between subplots, expressed as a fraction
+            - wspace float, optional : The amount of width reserved for space between subplots, expressed as a fraction
               of the average axis width. If not given, the values will be inferred from a figure or rcParams
               when necessary. See also GridSpec.get_subplot_params.
 
-             - hspace float, optional : The amount of height reserved for space between subplots, expressed as a
+            - hspace float, optional : The amount of height reserved for space between subplots, expressed as a
               fraction of the average axis height. If not given, the values will be inferred from a figure or rcParams
                when necessary. See also GridSpec.get_subplot_params.
 
-             - width_ratios array-like of length ncols, optional : Defines the relative widths of the columns.
+            - width_ratios array-like of length ncols, optional : Defines the relative widths of the columns.
               Each column gets a relative width of width_ratios[i] / sum(width_ratios).
                If not given, all columns will have the same width.
 
-             - height_ratios array-like of length nrows, optional : Defines the relative heights of the rows.
+            - height_ratios array-like of length nrows, optional : Defines the relative heights of the rows.
              Each row gets a relative height of height_ratios[i] / sum(height_ratios).
              If not given, all rows will have the same height.
 
-        :return: None
+        Returns
+        -------
+        None
+
+        See Also
+        -------
+        matplotlib.gridspec.GridSpec
+
         """
         self.param_grid_spec.update(dico)
 
     def config_font(self, **dico) -> None:
         """
         Global font parameter
-        :param dico
-            'family' : 'fantasy','monospace','sans-serif','serif','cursive'
-            'styles' : 'normal', 'italic', 'oblique'
-            'size' : valeur numérique
-            'variants' : 'normal', 'small-caps'
-            'weight' : 'light', 'normal', 'medium', 'semibold', 'bold', 'heavy', 'black'
--       :return None
+
+        Parameters
+        ----------
+        kwargs
+           'family' : 'fantasy','monospace','sans-serif','serif','cursive'
+           'styles' : 'normal', 'italic', 'oblique'
+           'size' : valeur numérique
+           'variants' : 'normal', 'small-caps'
+           'weight' : 'light', 'normal', 'medium', 'semibold', 'bold', 'heavy', 'black'
+
+        Returns
+        -------
+        None
+
         """
         k: list[str] = dico.keys()
         vals: list = dico.values()
@@ -5029,8 +6576,18 @@ class Multigraph:
 
     def plot(self) -> None:
         """
-        Plot all the Graphique's elements
-        :return: None
+        Plot all the Multigraph's elements
+
+        Parameters
+        ----------
+        in_Multigraph: bool, optional, default=False
+            If the Graphique is plotted in a Multigraph, it deactivate globals parameters such as
+        the police or the style.
+
+        Returns
+        -------
+            None
+
         """
         if self.style in plt.style.available or self.style == 'default':
             plt.style.use(self.style)
@@ -5038,7 +6595,7 @@ class Multigraph:
             print("The style ", self.style, " is not awalible. \n Please use :\n", plt.style.available)
 
         with mpl.rc_context(self.param_font):
-            param_fig = {'figsize': [6.4*self.ncols, 4.8*self.nrows]}
+            param_fig = {'figsize': [6.4 * self.ncols, 4.8 * self.nrows]}
             if len(self.param_fig) > 0:
                 param_fig.update(self.param_fig)
             self.fig = plt.figure(**param_fig)
@@ -5073,7 +6630,8 @@ class Multigraph:
                 elif isinstance(coords[0], int):
                     # graph.ax = self.fig.add_subplot(spec[coords[0], coords[1][0]:coords[1][1] + 1], projection=projection,
                     #                            sharex=sharex, sharey=sharey, **args)
-                    graph.ax = self.fig.add_subplot(spec[coords[0], coords[1][0]:coords[1][1] + 1], projection=projection,
+                    graph.ax = self.fig.add_subplot(spec[coords[0], coords[1][0]:coords[1][1] + 1],
+                                                    projection=projection,
                                                     **args)
                     if sharex is not None:
                         graph.ax.sharex(sharex)
@@ -5083,8 +6641,9 @@ class Multigraph:
                     # graph.ax = self.fig.add_subplot(spec[coords[0][0]:coords[0][1] + 1, coords[1]], projection=projection,
                     #                            sharex=sharex, sharey=sharey, **args)
                     #
-                    graph.ax = self.fig.add_subplot(spec[coords[0][0]:coords[0][1] + 1, coords[1]], projection=projection,
-                                                     **args)
+                    graph.ax = self.fig.add_subplot(spec[coords[0][0]:coords[0][1] + 1, coords[1]],
+                                                    projection=projection,
+                                                    **args)
                     if sharex is not None:
                         graph.ax.sharex(sharex)
                     if sharey is not None:
@@ -5093,7 +6652,7 @@ class Multigraph:
                     # graph.ax = self.fig.add_subplot(spec[coords[0][0]:coords[0][1] + 1, coords[1][0]:coords[1][1] + 1],
                     #                            projection=projection, sharex=sharex, sharey=sharey, **args)
                     graph.ax = self.fig.add_subplot(spec[coords[0][0]:coords[0][1] + 1, coords[1][0]:coords[1][1] + 1],
-                                               projection=projection,**args)
+                                                    projection=projection, **args)
                     if sharex is not None:
                         graph.ax.sharex(sharex)
                     if sharey is not None:
@@ -5103,9 +6662,14 @@ class Multigraph:
 
     def save_figure(self, **args) -> None:
         """
+
         Save the image product by the Multigraph's plotting, not the Multigraph itself.
         The image is saved on the Multigraph's format (default .png)
-        :param args: Additionals parameters for the Figure saving
+
+        Parameters
+        ----------
+        args
+            Additionals parameters for the Figure saving
             see https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.savefig.html#matplotlib.figure.Figure.savefig
 
             - igsize 2-tuple of floats, default: rcParams["figure.figsize"] (default: [6.4, 4.8])
@@ -5207,7 +6771,11 @@ class Multigraph:
             - visible bool
 
             - zorder float
-        :return:
+
+        Returns
+        -------
+        None
+
         """
         args_enrg = self.param_enrg_fig.copy()
         args_enrg.update(args)
@@ -5225,9 +6793,14 @@ class Multigraph:
 
     def show(self) -> None:
         """
-        Show the Multigraph
-        :return: None
+        Show the Graphique
+
+        Returns
+        -------
+            None
+
         """
+
         self.plot()
         self.fig.tight_layout()
         plt.show()
