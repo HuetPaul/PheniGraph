@@ -1,0 +1,18 @@
+PheniGraph package
+==================
+
+Submodules
+----------
+
+.. automodule:: phenigraph.objet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: phenigraph
+   :members:
+   :undoc-members:
+   :show-inheritance:
