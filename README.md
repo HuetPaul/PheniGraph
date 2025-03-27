@@ -3,7 +3,7 @@
 ![Logo phenigraph](logo.png)
 ## Description
 Allows you to save a matplotlib plot in a dedicated object so that you can reuse it as is later.
-
+The full documentation is available here: https://huetpaul.github.io/PheniGraph/
 ## Badges
 
 ## Visuals
