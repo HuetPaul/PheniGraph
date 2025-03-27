@@ -6,7 +6,7 @@ from setuptools.command.install import install
 setup(
     name='phenigraph',
     packages=find_packages(include=['phenigraph']),
-    version='0.2.0.1',
+    version='0.2.0.2',
     install_requires=["numpy", "matplotlib", "PyQt5", "scipy"],
     description='A library to plot, store and replot matplotlib plot easly and reproducibly',
     author='Paul Huet',
