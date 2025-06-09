@@ -1216,7 +1216,7 @@ To display several Graphique in one, use a Multigraph
 
     def line(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
-             marker: str | list | np.ndarray[str] = "", share_colorbar: bool | int = True,
+             marker: str | list | np.ndarray[str] = "", share_colorbar: bool | int = False,
              scale_z: str = "linear", kwargs_colorbar: dict | None = None,
              hide: bool = False,
              axis_config: str = "bl", **kwargs) -> None:
@@ -1235,7 +1235,7 @@ To display several Graphique in one, use a Multigraph
              z-axis (represented by a colorscale)
         marker : str | list[str] | array_like[str], optional, default=""
             The marker  ex ".", ",", "o", "v"... (see matplotlib documentation)
-        share_colorbar : bool, int optional, default=True
+        share_colorbar : bool, int optional, default=False
              If True (default) and z is not None, only one colorscale is used
              even if z is in two dimensions. If is an integer, the integer refers to the index of a customized cmap
         scale_z : str, {'linear', 'log', 'symlog'}, optional, default='linear'
@@ -1388,33 +1388,52 @@ To display several Graphique in one, use a Multigraph
             raise UserWarning("Graphique.line : the sizes of the abscissa "
                               "doesn't mach with the sizes of the z-axis : ",
                               len(x), len(z))
-
+        if dim_z < 2 and isinstance(share_colorbar, bool) and share_colorbar:
+            if self.custum_colorbar_values is None:
+                raise UserWarning("Graphique.line : There is no previous colormap to use to plot the z axis, please set "
+                                  "the parameter share_colorbar to False")
+            share_colorbar = len(self.param_colorbar) - 1
+            print('Graphique.line : Warning, no colorbar is provide to plot the z axis, the ', share_colorbar, "is used by default")
         if dim_x == 2 and dim_y == 2 and dim_z == 2:
             if scale_z == "linear" or scale_z == "symlog":
-                z_min: np.float64 = np.min(z)
-                z_max: np.float64 = np.max(z)
-            else:
-                if z is not None and np.any(z > 0):
-                    z_min: np.float64 = np.min(z[z > 0])
+                if isinstance(share_colorbar, bool):
+                    z_min: np.float64 = np.min(z)
                     z_max: np.float64 = np.max(z)
                 else:
-                    raise UserWarning("Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+            else:
+                if isinstance(share_colorbar, bool):
+                    if np.any(z > 0):
+                        z_min: np.float64 = np.min(z[z > 0])
+                        z_max: np.float64 = np.max(z)
+                    else:
+                        raise UserWarning(
+                            "Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                else:
+                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+            if scale_z == "symlog" and (z > 0).sum() > 0:
+                if isinstance(share_colorbar, bool):
+                    z_min_pos: np.float64 = np.min(z[z > 0])
+                else:
+                    z_min_pos: np.float64 = self.custum_colorbar_values[
+                        np.argwhere(self.custum_colorbar_values > 0)[0, 0]]
 
-            if scale_z == "symlog" and z is not None and (z > 0).sum() > 0:
-                z_min_pos: np.float64 = np.min(z[z > 0])
             else:
                 z_min_pos: np.float64 = 0.
+
             if scale_z == "symlog" and z is not None and (z < 0).sum() > 0:
-                z_max_neg: np.float64 = np.max(z[z < 0])
+                if isinstance(share_colorbar, bool):
+                    z_max_neg: np.float64 = np.max(z[z < 0])
+                else:
+                    z_min_neg: np.float64 = self.custum_colorbar_values[
+                        np.argwhere(self.custum_colorbar_values < 0)[-1, 0]]
             else:
                 z_max_neg: np.float64 = 0.
 
-            locs: list[str] = ["right", "top", "left"]
-            fracs: list[str] = [0.15, 0.05, 0.15]
-            aspects: list[str] = [20, 30, 20]
             for (X, Y, Z, i) in zip(x, y, z, np.arange(len(x))):
-                if (isinstance(share_colorbar, bool) and not share_colorbar
-                ) or isinstance(share_colorbar, int):
+                if isinstance(share_colorbar, bool):
                     if scale_z == "linear" or scale_z == "symlog":
                         z_min: np.float64 = np.min(Z)
                         z_max: np.float64 = np.max(Z)
@@ -1470,8 +1489,8 @@ To display several Graphique in one, use a Multigraph
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     elif isinstance(share_colorbar, bool):
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
                     if isinstance(share_colorbar, bool):
                         args_auxi["color"] = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
                                                                         col_min=c_min,
@@ -1482,20 +1501,18 @@ To display several Graphique in one, use a Multigraph
                                                                         col_min=self.custum_colorbar_colors[share_colorbar][0],
                                                                         col_max=self.custum_colorbar_colors[share_colorbar][-1])
 
-                    if isinstance(colorbar, bool) and not share_colorbar:
+                    if isinstance(share_colorbar, bool) and not share_colorbar:
                         self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)], scale=scale_z, **kwargs_colorbar)
+                                             scale=scale_z, **kwargs_colorbar)
                 elif scale_z == "log" and len(idx_s) > 0:
                     if  isinstance(share_colorbar, bool) and share_colorbar:
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     elif isinstance(share_colorbar, bool):
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
                     if isinstance(share_colorbar, bool):
                         args_auxi["color"] = linear_color_interpolation(np.log10(Z[idx_s]), val_min=np.log10(z_min),
                                                                         val_max=np.log10(z_max),
@@ -1512,22 +1529,20 @@ To display several Graphique in one, use a Multigraph
                                                                         col_max=
                                                                         self.custum_colorbar_colors[share_colorbar][-1])
 
-                    if  isinstance(share_colorbar, bool) and not share_colorbar:
+                    if isinstance(share_colorbar, bool) and not share_colorbar:
                         self.customized_cmap(values=np.linspace(np.log10(z_min), np.log10(z_max), 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)], scale=scale_z, **kwargs_colorbar)
+                                             scale=scale_z, **kwargs_colorbar)
                 else:
                     if isinstance(share_colorbar, bool) and share_colorbar:
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                         c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
                     elif isinstance(share_colorbar, bool):
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_med: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 3 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 3 * i) % len(l_colors)]
+                        c_med: str = l_colors[(self.compt_color + 2 + 3 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 3 + 3 * i) % len(l_colors)]
                     else:
                         c_min: str = self.custum_colorbar_colors[share_colorbar][0]
                         c_min: str = self.custum_colorbar_colors[share_colorbar][
@@ -1565,10 +1580,7 @@ To display several Graphique in one, use a Multigraph
                     args_auxi["color"] = colors
                     if  isinstance(share_colorbar, bool) and not share_colorbar:
                         self.customized_cmap(values=z_colors,
-                                             colors=colors,
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)], scale=scale_z, **kwargs_colorbar)
+                                             colors=colors, scale=scale_z, **kwargs_colorbar)
                 if "label" in kwargs and args_auxi["label"] == "":
                     del args_auxi["label"]
                     # Delete empty legend to prevent a warning message and the addition of an empty gray square
@@ -1621,54 +1633,60 @@ To display several Graphique in one, use a Multigraph
                 self.compt_color += 3 * len(x)
 
         elif dim_x == 2 and dim_y == 2 and dim_z < 2:
-            if z is not None and scale_z == "linear" or scale_z == "symlog":
-                if isinstance(share_colorbar, int):
-                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
-                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
-                    c_min: str = self.custum_colorbar_values[share_colorbar][0]
-                    c_max: str = self.custum_colorbar_values[share_colorbar][-1]
-                else:
-                    z_min: np.float64 = np.min(z)
-                    z_max: np.float64 = np.max(z)
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-            elif z is not None:
-                if isinstance(share_colorbar, int):
-                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar][
-                                                   self.custum_colorbar_values[share_colorbar] > 0])
-                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
-                    c_min: str = self.custum_colorbar_colors[share_colorbar][0]
-                    c_med: str = self.custum_colorbar_colors[share_colorbar][
-                        np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
-                    c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
-                else:
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
-                    if np.any(z > 0):
-                        z_min: np.float64 = np.min(z[z > 0])
+
+            if z is not None:
+                if z is not None and scale_z == "linear" or scale_z == "symlog":
+                    if isinstance(share_colorbar, bool):
+                        z_min: np.float64 = np.min(z)
                         z_max: np.float64 = np.max(z)
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     else:
-                        raise UserWarning("Graphique.line : z-axis has no strictly positive values and the scale is log)")
-            else:
-                z_min: np.float64 = np.double(0.)
-                z_max: np.float64 = np.double(0.)
-            if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or isinstance(share_colorbar, int)):
-                if isinstance(share_colorbar, int):
-                    z_min_pos: np.float64 = self.custum_colorbar_values[share_colorbar][
-                        np.argwhere(self.custum_colorbar_values[share_colorbar] >0)[0,0]]
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
+
+                elif z is not None:
+                    if isinstance(share_colorbar, bool):
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
+                        if np.any(z > 0):
+                            z_min: np.float64 = np.min(z[z > 0])
+                            z_max: np.float64 = np.max(z)
+                        else:
+                            raise UserWarning(
+                                "Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                    else:
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar][
+                                                       self.custum_colorbar_values[share_colorbar] > 0])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_med: str = self.custum_colorbar_colors[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
+
                 else:
-                    z_min_pos: np.float64 = np.min(z[z > 0])
-            else:
-                z_min_pos: np.float64 = 0.
-            if z is not None and scale_z == "symlog" and (z < 0).sum() > 0:
-                if isinstance(share_colorbar, int):
-                    z_min_neg: np.float64 = self.custum_colorbar_values[share_colorbar][
-                        np.argwhere(self.custum_colorbar_values[share_colorbar] < 0)[-1, 0]]
+                    z_min: np.float64 = np.double(0.)
+                    z_max: np.float64 = np.double(0.)
+                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+                    if isinstance(share_colorbar, bool):
+                        z_min_pos: np.float64 = np.min(z[z > 0])
+                    else:
+                        z_min_pos: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
                 else:
-                    z_max_neg: np.float64 = np.max(z[z < 0])
-            else:
-                z_max_neg: np.float64 = 0.
+                    z_min_pos: np.float64 = 0.
+                if z is not None and scale_z == "symlog" and (z < 0).sum() > 0:
+                    if isinstance(share_colorbar, bool):
+                        z_max_neg: np.float64 = np.max(z[z < 0])
+                    else:
+                        z_min_neg: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] < 0)[-1, 0]]
+
+                else:
+                    z_max_neg: np.float64 = 0.
 
             idx_s: np.ndarray[int] = np.arange(len(x[0]))
             if scale_z == "log" and np.any(z > 0):
@@ -1752,21 +1770,25 @@ To display several Graphique in one, use a Multigraph
 
             if z is None and len(y) <= 4 and "color" not in kwargs:
                 self.compt_color += len(y)
-            elif z is None and "color" not in kwargs:
-                self.compt_color += 1
-            elif isinstance(share_colorbar, bool) and scale_z == "linear":
+            elif z is None:
+                if "color" not in kwargs and len(y) <= 4:
+                    self.compt_color += len(y)
+                elif "color" not in kwargs:
+                    self.compt_color += 2
+            elif (isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar)
+                  and scale_z == "linear"):
                 self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                      colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                        col_min=c_min, col_max=c_max),
                                      scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 2
-            elif isinstance(share_colorbar, bool) and scale_z == "log":
+            elif isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar)  and scale_z == "log":
                 self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
                                      colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                        col_min=c_min, col_max=c_max),
                                      scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 2
-            elif isinstance(share_colorbar, bool):
+            elif isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar) :
                 if z_min_pos > 0.:
                     z_colors1 = np.geomspace(z_min_pos, z_max, 255 // 2)
                     colors1 = linear_color_interpolation(np.linspace(np.log10(z_min_pos), np.log10(z_max),
@@ -1790,43 +1812,40 @@ To display several Graphique in one, use a Multigraph
 
         elif dim_y == 2 and dim_z == 2:
             if scale_z == "linear" or scale_z == "symlog":
-                if isinstance(share_colorbar, int):
-                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
-                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
-                else:
+                if isinstance(share_colorbar, bool):
                     z_min: np.float64 = np.min(z)
                     z_max: np.float64 = np.max(z)
-            else:
-                if isinstance(share_colorbar, int):
+                else:
                     z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                     z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
-                else:
+            else:
+                if isinstance(share_colorbar, bool):
                     if np.any(z > 0):
                         z_min: np.float64 = np.min(z[z > 0])
                         z_max: np.float64 = np.max(z)
                     else:
                         raise UserWarning("Graphique.line : z-axis has no strictly positive values and the scale is log)")
-
-            if scale_z == "symlog" and (z > 0).sum() > 0:
-                if isinstance(share_colorbar, int):
-                    z_min_pos: np.float64 = self.custum_colorbar_values[np.argwhere(self.custum_colorbar_values > 0)[0,0]]
                 else:
+                    z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                    z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+            if scale_z == "symlog" and (z > 0).sum() > 0:
+                if isinstance(share_colorbar, bool):
                     z_min_pos: np.float64 = np.min(z[z > 0])
+                else:
+                    z_min_pos: np.float64 = self.custum_colorbar_values[np.argwhere(self.custum_colorbar_values > 0)[0,0]]
+
             else:
                 z_min_pos: np.float64 = 0.
 
             if scale_z == "symlog" and z is not None and (z < 0).sum() > 0:
-                if isinstance(share_colorbar, int):
+                if isinstance(share_colorbar, bool):
+                    z_max_neg: np.float64 = np.max(z[z < 0])
+                else:
                     z_min_neg: np.float64 = self.custum_colorbar_values[
                         np.argwhere(self.custum_colorbar_values < 0)[-1, 0]]
-                else:
-                    z_max_neg: np.float64 = np.max(z[z < 0])
             else:
                 z_max_neg: np.float64 = 0.
 
-            locs: list[str] = ["right", "top", "left"]
-            fracs: list[str] = [0.15, 0.05, 0.15]
-            aspects: list[str] = [20, 30, 20]
             for (Y, Z, i) in zip(y, z, np.arange(len(y))):
                 if not share_colorbar:
                     if scale_z == "linear" or scale_z == "symlog":
@@ -1887,8 +1906,8 @@ To display several Graphique in one, use a Multigraph
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     else:
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
 
                     args_auxi["color"] = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
                                                                     col_min=c_min,
@@ -1897,17 +1916,14 @@ To display several Graphique in one, use a Multigraph
                         self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)],
                                              scale=scale_z, **kwargs_colorbar)
                 elif scale_z == "log" and len(idx_s) > 0:
                     if share_colorbar:
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     else:
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
 
                     args_auxi["color"] = linear_color_interpolation(np.log10(Z[idx_s]), val_min=np.log10(z_min),
                                                                     val_max=np.log10(z_max),
@@ -1917,9 +1933,6 @@ To display several Graphique in one, use a Multigraph
                         self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)],
                                              scale=scale_z, **kwargs_colorbar)
                 else:
                     if share_colorbar:
@@ -1927,9 +1940,9 @@ To display several Graphique in one, use a Multigraph
                         c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
                     else:
-                        c_min: str = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
-                        c_med: str = l_colors[(self.compt_color + 2 + i) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 3 + i) % len(l_colors)]
+                        c_min: str = l_colors[(self.compt_color + 1 + 3 * i) % len(l_colors)]
+                        c_med: str = l_colors[(self.compt_color + 2 + 3 * i) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 3 + 3 * i) % len(l_colors)]
                     ma: np.ndarray[bool] = Z > 0.
                     args_auxi["color"] = np.full(len(x), c_med)
                     if z_min_pos > 0.:
@@ -1961,16 +1974,13 @@ To display several Graphique in one, use a Multigraph
                     colors: np.ndarray[np.float64] = np.append(colors2, colors1)
                     if not share_colorbar:
                         self.customized_cmap(values=z_colors,
-                                             colors=colors,
-                                             location=locs[i % len(locs)],
-                                             fraction=fracs[i % len(fracs)],
-                                             aspect=aspects[i % len(aspects)], scale=scale_z,
+                                             colors=colors, scale=scale_z,
                                              **kwargs_colorbar)
                 if "label" in kwargs and args_auxi["label"] == "":
                     del args_auxi["label"]
                     # Delete empty legend to prevent a warning message and the addition of an empty gray square
                 self.param_lines.append(args_auxi)
-            if share_colorbar:
+            if isinstance(share_colorbar, bool) and share_colorbar:
                 if scale_z == "linear":
                     c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                     c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
@@ -2017,32 +2027,62 @@ To display several Graphique in one, use a Multigraph
                 self.compt_color += 3 * len(x)
 
         elif dim_y == 2 and dim_z < 2:
-            if z is not None and scale_z == "linear" or scale_z == "log":
-                c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                if scale_z == "log" and np.any(z > 0):
-                    z_min: np.float64 = np.min(z[z > 0])
-                    z_max: np.float64 = np.max(z)
-                elif scale_z == "log":
-                    raise UserWarning("Graphique.line : z-axis has no strictly positive values and the scale is log)")
+            # if z is None and "color" not in kwargs:
+            #     kwargs["color"] = l_colors[self.compt_color + 1 % len(l_colors)]
+            #     self.compt_color += 1
+            if z is not None:
+                if z is not None and scale_z == "linear" or scale_z == "symlog":
+                    if isinstance(share_colorbar, bool):
+                        z_min: np.float64 = np.min(z)
+                        z_max: np.float64 = np.max(z)
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    else:
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
+
+                elif z is not None:
+                    if isinstance(share_colorbar, bool):
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
+                        if np.any(z > 0):
+                            z_min: np.float64 = np.min(z[z > 0])
+                            z_max: np.float64 = np.max(z)
+                        else:
+                            raise UserWarning(
+                                "Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                    else:
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar][
+                                                       self.custum_colorbar_values[share_colorbar] > 0])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_med: str = self.custum_colorbar_colors[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
+
                 else:
-                    z_min: np.float64 = np.min(z)
-                    z_max: np.float64 = np.max(z)
-            elif z is not None:
-                c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
-            else:
-                z_min: np.float64 = np.double(0.)
-                z_max: np.float64 = np.double(0.)
-            if z is not None and scale_z == "symlog" and np.any(z > 0.):
-                z_min_pos: np.float64 = np.min(z[z > 0])
-            else:
-                z_min_pos: np.float64 = 0.
-            if z is not None and scale_z == "symlog" and np.any(z > 0.):
-                z_max_neg: np.float64 = np.max(z[z < 0])
-            else:
-                z_max_neg: np.float64 = 0.
+                    z_min: np.float64 = np.double(0.)
+                    z_max: np.float64 = np.double(0.)
+                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+                    if isinstance(share_colorbar, bool):
+                        z_min_pos: np.float64 = np.min(z[z > 0])
+                    else:
+                        z_min_pos: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
+                else:
+                    z_min_pos: np.float64 = 0.
+                if z is not None and scale_z == "symlog" and (z < 0).sum() > 0:
+                    if isinstance(share_colorbar, bool):
+                        z_max_neg: np.float64 = np.max(z[z < 0])
+                    else:
+                        z_min_neg: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] < 0)[-1, 0]]
+
+                else:
+                    z_max_neg: np.float64 = 0.
             colors: np.ndarray[str] = []
             if scale_z == "linear" and z is not None:
                 colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
@@ -2128,19 +2168,19 @@ To display several Graphique in one, use a Multigraph
                 self.compt_color += len(y)
             elif z is None and "color" not in kwargs:
                 self.compt_color += 2
-            elif z is not None and scale_z == "linear":
+            elif z is not None and scale_z == "linear" and isinstance(share_colorbar, bool) and not share_colorbar:
                 self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                      colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                        col_min=c_min, col_max=c_max),
                                      scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 2
-            elif z is not None and scale_z == "log":
+            elif z is not None and scale_z == "log" and isinstance(share_colorbar, bool) and not share_colorbar:
                 self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
                                      colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                        col_min=c_min, col_max=c_max),
                                      scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 2
-            elif z is not None:
+            elif z is not None and isinstance(share_colorbar, bool) and not share_colorbar:
                 if z_min_pos > 0.:
                     z_colors1 = np.geomspace(z_min_pos, z_max, 255 // 2)
                     colors1 = linear_color_interpolation(np.linspace(np.log10(z_min_pos), np.log10(z_max),
@@ -2180,38 +2220,109 @@ To display several Graphique in one, use a Multigraph
                 kwargs["color"] = l_colors[self.compt_color + 1 % len(l_colors)]
                 self.compt_color += 1
             elif z is not None:
-                if scale_z == "linear":
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                    z_min: np.float64 = np.min(z)
-                    z_max: np.float64 = np.max(z)
-                    kwargs["color"] = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
-                                                                 col_min=c_min, col_max=c_max)
-                    self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
-                                         scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
-                elif scale_z == "log" and np.any(z > 0.):
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                    z_min: np.float64 = np.min(z[z > 0])
-                    z_max: np.float64 = np.max(z[z > 0])
+                if z is not None and scale_z == "linear" or scale_z == "symlog":
+                    if isinstance(share_colorbar, bool):
+                        z_min: np.float64 = np.min(z)
+                        z_max: np.float64 = np.max(z)
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    else:
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
 
-                    kwargs["color"] = linear_color_interpolation(np.log10(z[z > 0]), val_min=np.log10(z_min),
-                                                                 val_max=np.log10(z_max),
-                                                                 col_min=c_min, col_max=c_max)
-                    self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
+                elif z is not None:
+                    if isinstance(share_colorbar, bool):
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
+                        if np.any(z > 0):
+                            z_min: np.float64 = np.min(z[z > 0])
+                            z_max: np.float64 = np.max(z)
+                        else:
+                            raise UserWarning(
+                                "Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                    else:
+                        z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar][
+                                                       self.custum_colorbar_values[share_colorbar] > 0])
+                        z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
+                        c_min: str = self.custum_colorbar_colors[share_colorbar][0]
+                        c_med: str = self.custum_colorbar_colors[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
+                        c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
+
+                else:
+                    z_min: np.float64 = np.double(0.)
+                    z_max: np.float64 = np.double(0.)
+                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+                    if isinstance(share_colorbar, bool):
+                        z_min_pos: np.float64 = np.min(z[z > 0])
+                    else:
+                        z_min_pos: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
+                else:
+                    z_min_pos: np.float64 = 0.
+                if z is not None and scale_z == "symlog" and (z < 0).sum() > 0:
+                    if isinstance(share_colorbar, bool):
+                        z_max_neg: np.float64 = np.max(z[z < 0])
+                    else:
+                        z_min_neg: np.float64 = self.custum_colorbar_values[share_colorbar][
+                            np.argwhere(self.custum_colorbar_values[share_colorbar] < 0)[-1, 0]]
+
+                else:
+                    z_max_neg: np.float64 = 0.
+
+                idx_s: np.ndarray[int] = np.arange(len(z))
+                if scale_z == "log" and np.any(z > 0):
+                    idx_s = np.argwhere(z > 0)[:, 0]
+                elif scale_z == "log":
+                    idx_s = np.array([])
+                colors: np.ndarray[str] = []
+                colors_cmap: np.ndarray[str] = []
+                if scale_z == "linear" and z is not None:
+                    colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
+                                                        col_min=c_min, col_max=c_max)
+                    colors_cmap = linear_color_interpolation(np.linspace(z_min, z_max, 255), val_min=z_min, val_max=z_max,
+                                                            col_min=c_min, col_max=c_max)
+                elif scale_z == "log" and z is not None and np.any(z > 0):
+                    colors = linear_color_interpolation(np.log10(z[idx_s]), val_min=np.log10(z_min),
+                                                        val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                    colors_cmap = linear_color_interpolation(np.log10(np.linspace(z_min, z_max, 255)), val_min=np.log10(z_min),
+                                                            val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                elif z is not None:
+                    colors = np.full(len(z), c_med)
+                    ma = z > 0
+                    if z_min_pos > 0.:
+                        colors[ma] = linear_color_interpolation(np.log10(colors[ma]),
+                                                                val_min=np.log10(z_min_pos),
+                                                                val_max=np.log10(z_max),
+                                                                col_min=c_med, col_max=c_max)
+                    else:
+                        z_colors1 = np.array([])
+                        colors1 = np.array([])
+
+                    if z_max_neg < 0.:
+                        colors[~ma] = linear_color_interpolation(np.log10(-z[~ma]),
+                                                                 val_min=np.log10(-z_max_neg),
+                                                                 val_max=np.log10(-z_min),
+                                                                 col_min=c_med, col_max=c_min)
+                kwargs["color"] = colors
+                if scale_z == "linear" and isinstance(share_colorbar, bool) and not share_colorbar:
+                    self.customized_cmap(values=np.linspace(z_min, z_max, 255),
+                                         colors=colors_cmap,
                                          scale=scale_z, **kwargs_colorbar)
                     self.compt_color += 2
-                else:
+                elif scale_z == "log" and np.any(z > 0.) and isinstance(share_colorbar, bool) and not share_colorbar:
+                    self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
+                                         colors=colors_cmap,
+                                         scale=scale_z, **kwargs_colorbar)
+                    self.compt_color += 2
+                elif isinstance(share_colorbar, bool) and not share_colorbar:
                     c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                     c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
                     c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
                     ma: np.ndarray[bool] = z > 0.
-                    kwargs["color"] = np.full(len(z), c_med)
                     z_min: np.float64 = np.min(z)
                     z_max: np.float64 = np.max(z)
                     if np.any(z > 0):
@@ -2223,10 +2334,6 @@ To display several Graphique in one, use a Multigraph
                     else:
                         z_max_neg: np.float64 = 0.
                     if z_min_pos > 0.:
-                        kwargs["color"][ma] = linear_color_interpolation(np.log10(z[ma]),
-                                                                         val_min=np.log10(z_min_pos),
-                                                                         val_max=np.log10(z_max),
-                                                                         col_min=c_med, col_max=c_max)
                         z_colors1 = np.geomspace(z_min_pos, z_max, 255 // 2)
                         colors1 = linear_color_interpolation(np.linspace(np.log10(z_min_pos), np.log10(z_max),
                                                                          255 // 2),
@@ -2235,10 +2342,6 @@ To display several Graphique in one, use a Multigraph
                         z_colors1 = np.array([])
                         colors1 = np.array([])
                     if z_max_neg < 0.:
-                        kwargs["color"][~ma] = linear_color_interpolation(np.log10(-z[~ma]),
-                                                                          val_min=np.log10(-z_max_neg),
-                                                                          val_max=np.log10(-z_min),
-                                                                          col_min=c_med, col_max=c_min)
                         z_colors2 = -np.geomspace(-z_min, -z_max_neg, 255 // 2)
                         colors2 = linear_color_interpolation(np.linspace(np.log10(-z_min), np.log10(-z_max_neg),
                                                                          255 // 2),
@@ -2250,6 +2353,7 @@ To display several Graphique in one, use a Multigraph
                     colors: np.ndarray[np.float64] = np.append(colors2, colors1)
                     self.customized_cmap(values=z_colors, colors=colors, scale=scale_z,
                                          **kwargs_colorbar)
+                    self.compt_color += 4
             if "label" in kwargs and kwargs["label"] == "":
                 del kwargs["label"]
             self.param_lines.append(kwargs)
@@ -2644,7 +2748,7 @@ To display several Graphique in one, use a Multigraph
 
     def polar(self, r: list | np.ndarray, theta: list | np.ndarray,
               z: np.ndarray | list | None = None, marker: str = "",
-              share_colorbar: bool = True, scale_z: str = "linear", hide: bool = False,
+              share_colorbar: bool = False, scale_z: str = "linear", hide: bool = False,
               kwargs_colorbar: dict | None = None, axis_config: str = "bl",
               **kwargs: dict) -> None:
         """
@@ -2700,7 +2804,7 @@ To display several Graphique in one, use a Multigraph
 
     def loglog(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                z: np.ndarray | list | None = None,
-               marker: str | list = "", share_colorbar: bool = True,
+               marker: str | list = "", share_colorbar: bool = False,
                scale_z: str = "linear", hide: bool = False, kwargs_colorbar: dict | None = None,
                axis_config: str = "bl", **kwargs) -> None:
         """
@@ -2790,7 +2894,7 @@ To display several Graphique in one, use a Multigraph
 
     def symloglog(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                   z: np.ndarray | list | None = None,
-                  marker: str | list = "", share_colorbar: bool = True,
+                  marker: str | list = "", share_colorbar: bool = False,
                   scale_z: str = "linear", hide: bool = False,
                   kwargs_colorbar: dict | None = None, axis_config: str = "bl", **kwargs) -> None:
         """
@@ -2883,7 +2987,7 @@ To display several Graphique in one, use a Multigraph
 
     def logx(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
-             marker: str | list = "", share_colorbar: bool = True,
+             marker: str | list = "", share_colorbar: bool = False,
              scale_z: str = "linear", hide: bool = False,
              kwargs_colorbar: dict | None = None, axis_config: str = "bl", **kwargs) -> None:
         """
@@ -2971,7 +3075,7 @@ To display several Graphique in one, use a Multigraph
 
     def symlogx(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                 z: np.ndarray | list | None = None,
-                marker: str | list = "", share_colorbar: bool = True,
+                marker: str | list = "", share_colorbar: bool = False,
                 scale_z: str = "linear", hide: bool = False,
                 kwargs_colorbar: dict | None = None, axis_config: str = "bl", **kwargs) -> None:
         """
@@ -3059,7 +3163,7 @@ To display several Graphique in one, use a Multigraph
 
     def logy(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
              z: np.ndarray | list | None = None,
-             marker: str | list = "", share_colorbar: bool = True,
+             marker: str | list = "", share_colorbar: bool = False,
              scale_z: str = "linear", hide: bool = False,
              kwargs_colorbar: dict | None = None, axis_config: str = "bl", **kwargs) -> None:
         """
@@ -3147,7 +3251,7 @@ To display several Graphique in one, use a Multigraph
 
     def symlogy(self, x: np.ndarray | list, y: np.ndarray | list | None = None,
                 z: np.ndarray | list | None = None,
-                marker: str | list = "", share_colorbar: bool = True,
+                marker: str | list = "", share_colorbar: bool = False,
                 scale_z: str = "linear", hide: bool = False,
                 kwargs_colorbar: dict | None = None, axis_config: str = "bl", **kwargs) -> None:
         """
@@ -5618,7 +5722,7 @@ To display several Graphique in one, use a Multigraph
 
 def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
-         marker: str | list = "", share_colorbar: bool = True,
+         marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
          show: bool = True, hide: bool = False, axis_config: str = "bl", **kwargs) -> Graphique:
     """
@@ -5827,7 +5931,7 @@ def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarr
 
 def polar(R: list | np.ndarray, Theta: list | np.ndarray,
           z: np.ndarray | list | None = None, marker: str = "",
-          share_colorbar: bool = True, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
+          share_colorbar: bool = False, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
           axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs: dict) -> Graphique:
     """
     Equivalent to line in polar projection
@@ -5889,7 +5993,7 @@ def polar(R: list | np.ndarray, Theta: list | np.ndarray,
 
 def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
            z: np.ndarray | list | None = None,
-           marker: str | list = "", share_colorbar: bool = True,
+           marker: str | list = "", share_colorbar: bool = False,
            scale_z: str = "linear", kwargs_colorbar: dict | None = None,
            axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
@@ -5985,7 +6089,7 @@ def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
               z: np.ndarray | list | None = None,
-              marker: str | list = "", share_colorbar: bool = True,
+              marker: str | list = "", share_colorbar: bool = False,
               scale_z: str = "linear", kwargs_colorbar: dict | None = None,
               axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
@@ -6084,7 +6188,7 @@ def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
-         marker: str | list = "", share_colorbar: bool = True,
+         marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
          axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
@@ -6182,7 +6286,7 @@ def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
-            marker: str | list = "", share_colorbar: bool = True,
+            marker: str | list = "", share_colorbar: bool = False,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
             axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
@@ -6281,7 +6385,7 @@ def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
-         marker: str | list = "", share_colorbar: bool = True,
+         marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
          axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
@@ -6379,7 +6483,7 @@ def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
-            marker: str | list = "", share_colorbar: bool = True,
+            marker: str | list = "", share_colorbar: bool = False,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
             axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
     """
