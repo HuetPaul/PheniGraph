@@ -6,15 +6,28 @@
 Welcome to PheniGraph's documentation!
 ======================================
 
-This library allows you to save a matplotlib plot in a dedicated object so that you can reuse it as is later.
 
+.. image:: logo.png
+
+This library allows you to save a matplotlib plot in a dedicated object so that you can reuse it as is later.
 
 .. toctree::
    :maxdepth: 2
    :caption: Table of Contents
 
    Installation
+   Exemples
    phenigraph
+
+
+.. image:: plot_line_1.png
+.. image:: plot_line_2.png
+.. image:: plot_multiples_lines_2.png
+.. image:: plot_multiples_lines_6.png
+.. image:: plot_multiples_lines_5.png
+.. image:: plot_polar.png
+
+
 
 
 Indices and tables

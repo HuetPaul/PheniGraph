@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples of uses &mdash; PheniGraph 0.2.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="_static/icone.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=bf14799a"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="PheniGraph package" href="phenigraph.html" />
+    <link rel="prev" title="Installation" href="Installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PheniGraph
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples of uses</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lines">Lines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-linear-plot">A linear plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-lines">Multiple lines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dimensionals-data-in-2d-plots-the-colorscale">3 dimensionals data in 2D plots : the colorscale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configure-the-plots">Configure the plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-the-scales">Setting the scales</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#polar-plots">Polar plots</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#saving-the-graphique">Saving the Graphique</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="phenigraph.html">PheniGraph package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PheniGraph</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examples of uses</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Exemples.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples-of-uses">
+<h1>Examples of uses<a class="headerlink" href="#examples-of-uses" title="Link to this heading"></a></h1>
+<p>Those are few examples of possible plots by PheiGraph.
+Many are directly derived from the <a class="reference external" href="https://matplotlib.org/stable/gallery/index.html">matplotlib exemples</a> here :
+In all the following exemples, one assumes the folowing library are imported :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">phenigraph</span> <span class="k">as</span> <span class="nn">g</span>
+</pre></div>
+</div>
+<section id="lines">
+<h2>Lines<a class="headerlink" href="#lines" title="Link to this heading"></a></h2>
+<p>The operations to plot lines with phenigraph are very closed to the usuals operations in matplotlib.
+But in some cases, they are built to be more efficents.</p>
+<section id="a-linear-plot">
+<h3>A linear plot<a class="headerlink" href="#a-linear-plot" title="Link to this heading"></a></h3>
+<p>Let’s start to draw a simple line in linear coordinate, a cosinus :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linespace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_line_1.png" /></p>
+<p>One can plot another curve under the previous one :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_line_2.png" /></p>
+<p>The name of the methods to add a line/image/histogram to a Graphique and their parameters are similar to the names of functions that can générate a new Graphique with thoses lines/images/histograms.
+Thoses two operations can be summerized in one single line :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)])</span>
+</pre></div>
+</div>
+</section>
+<section id="multiple-lines">
+<h3>Multiple lines<a class="headerlink" href="#multiple-lines" title="Link to this heading"></a></h3>
+<p>This new syntax allows plotting multiple lines very easily.
+If they are more than four lines, a colormap is used to differentiate the curves :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_1.png" /></p>
+<p>If like in this example, each curve is associated with a specific value, it’s possible to add a colorbar to the plot by simply adding a third array of the size of the number of lines :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_2.png" /></p>
+<p>If one wants to plot only markers on this plot, the syntax is similar than for matplotlib :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_3.png" /></p>
+<p>If one wants to also draw the lines in addition to the markers, one simply have to add this parameter in the <code class="docutils literal notranslate"><span class="pre">line</span></code> function.
+It will be applied for each curve :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_4.png" /></p>
+<p>To have a specific parameter for each curve, one simply has to provide a list with the parameters insted of the parameter itself:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> 
+            <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;s=</span><span class="si">{:.3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_5.png" /></p>
+<p>The colorbar properties can directly be configurate inside <code class="docutils literal notranslate"><span class="pre">line</span></code>. This is useful, for example, to add a label to it :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">kwargs_colorbar</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span><span class="s2">&quot;Slopes&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>This is equivalent to :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">kwargs_colorbar</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span><span class="s2">&quot;Slopes&quot;</span><span class="p">})</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_colorbar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Slopes&quot;</span><span class="p">)</span> <span class="c1"># The first parameter is the number associated to the colorbar to be configurated. There is only one colorbar here so it is set to 0.</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_multiples_lines_6.png" /></p>
+</section>
+</section>
+<section id="dimensionals-data-in-2d-plots-the-colorscale">
+<h2>3 dimensionals data in 2D plots : the colorscale<a class="headerlink" href="#dimensionals-data-in-2d-plots-the-colorscale" title="Link to this heading"></a></h2>
+<p>It’s possible to represent 3-dimensional data with one dimension represented by a colorscale</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_colorscale_1.png" /></p>
+</section>
+<section id="configure-the-plots">
+<h2>Configure the plots<a class="headerlink" href="#configure-the-plots" title="Link to this heading"></a></h2>
+<p>It’s possible to configurate the plot via the <code class="docutils literal notranslate"><span class="pre">config_ax</span></code> method. This method applies to the Graphique axis the method <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set.html">axis.set</a>
+One can set the limits for the x or y-axis via the parameters <code class="docutils literal notranslate"><span class="pre">xlim</span></code> and <code class="docutils literal notranslate"><span class="pre">ylim</span></code>, the x and y labels via <code class="docutils literal notranslate"><span class="pre">xlabel</span></code> and <code class="docutils literal notranslate"><span class="pre">ylabel</span></code>,
+the title, the facecolor.
+One can also configurate the whole Figure with the <code class="docutils literal notranslate"><span class="pre">config_fig</span></code> method
+Let us take our previous Graphique and configure it :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;x axis&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;y axis&quot;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">ylim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">],</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C9</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Some lines&quot;</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Adding a grid to the plot</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_fig</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C7</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_configuration_1.png" /></p>
+<p>It can be useful to get transparent figures, for example, if one wants to use them on slides. One can use in that case the <code class="docutils literal notranslate"><span class="pre">g.Ctrensp</span></code> color for both the axis and the figure</p>
+<section id="setting-the-scales">
+<h3>Setting the scales<a class="headerlink" href="#setting-the-scales" title="Link to this heading"></a></h3>
+<p>The scales can be set via the <code class="docutils literal notranslate"><span class="pre">config_ax</span></code> method via the keywords <code class="docutils literal notranslate"><span class="pre">xscale</span></code> and <code class="docutils literal notranslate"><span class="pre">yscale</span></code>. The available scales <code class="docutils literal notranslate"><span class="pre">linear</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code> for a logarithmic scale
+or <code class="docutils literal notranslate"><span class="pre">symlog</span></code> for a logarithmique scale for both positives and negatives values.
+One can also build a Graphique with dedicated derived methods/functions <code class="docutils literal notranslate"><span class="pre">loglog</span></code> for a logarithmic scale on both axis,
+<code class="docutils literal notranslate"><span class="pre">logx</span></code> for a logarithmic scale on axis x and linear on axis y, <code class="docutils literal notranslate"><span class="pre">logy</span></code>, <code class="docutils literal notranslate"><span class="pre">symloglog</span></code>, <code class="docutils literal notranslate"><span class="pre">symlogx</span></code> or <code class="docutils literal notranslate"><span class="pre">symlogy</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">pwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pwd</span><span class="p">],</span> <span class="n">pwd</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">yscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>is equivalent to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">pwd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pwd</span><span class="p">],</span> <span class="n">pwd</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_scale_1.png" /></p>
+<p>Another example with the tan function :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">logy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_scale_2.png" /></p>
+<p>To see both positives and negatives values, one can use :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">symlogy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_scale_3.png" /></p>
+</section>
+<section id="polar-plots">
+<h3>Polar plots<a class="headerlink" href="#polar-plots" title="Link to this heading"></a></h3>
+<p>This is also possible to project the Graphique in polar coordinate :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">polar</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="n">theta</span><span class="o">+</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phi</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_polar.png" /></p>
+</section>
+</section>
+<section id="saving-the-graphique">
+<h2>Saving the Graphique<a class="headerlink" href="#saving-the-graphique" title="Link to this heading"></a></h2>
+<p>To save the plot itself, one should use the <code class="docutils literal notranslate"><span class="pre">save</span></code> method. The Graphique has a default filename which is use for both the .npz file and the images via <code class="docutils literal notranslate"><span class="pre">save_figure</span></code>. The default directory to save the plot is the working directory, but it can also be set to another one if needed.</p>
+<p>To save an image of the figure, one can use the <code class="docutils literal notranslate"><span class="pre">save_figure</span></code> method. The image will be saved with the same name that the Graphique itself in the format <code class="docutils literal notranslate"><span class="pre">Graphique.ext</span></code> which is <code class="docutils literal notranslate"><span class="pre">png</span></code> by default.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;Some_lines&quot;</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;your_directory&quot;</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;svg&quot;</span>  <span class="c1"># The image will be save in svg</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">save_figure</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>  <span class="c1"># The image is save with 400 dpi</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="phenigraph.html" class="btn btn-neutral float-right" title="PheniGraph package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Paul Huet.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

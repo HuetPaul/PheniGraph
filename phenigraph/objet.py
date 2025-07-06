@@ -643,31 +643,31 @@ To initialise a Graphique :
 
 To save a Graphique :
     - Assign a name to the graphic, without using an extension :
-        ```g.filename = "new_name"```
+        ```gr.filename = "new_name"```
         The default name is graph_without_name. If you want to save several Graphiques in the same folder
         it is therefore important to give them a name (not automatically)
     - If necessary, assign a directory for saving:
-        ```g.directory=‘new_directory’``` By default, the location is the current working directory.
+        ```gr.directory=‘new_directory’``` By default, the location is the current working directory.
     - To save the object :
-        ```g.save()```
+        ```gr.save()```
     - To save the figure :
         - Assign an extension if necessary (by default the extension is svg).
             Possible extensions are those available via the matplotlib library: ‘png’, ‘pdf’, ‘svg’, etc.
-            ```g.ext=".new_extension"```
-        - ```g.save_figure()```
+            ```gr.ext=".new_extension"```
+        - ```gr.save_figure()```
 
 To show the Graphique :
-    - ```g.show()```
+    - ```gr.show()```
 
 To add a line (equivalent to plt.plot) :
-    - ```g.add_line(x, y, **args)```
+    - ```gr.line(x, y, **args)```
 
     with x and y the list(s)/ndarray to plot
     and ```**args``` are all the ather arguments of plt.plot()
     Can be repeated as many times as required
 
 To add a histogram :
-    - ```g.add_histogram(values, weight=[], normalisation=True, statistic=‘sum’, bins=10, range=None, **args)``` :
+    - ```gr.histogram(values, weight=[], normalisation=True, statistic=‘sum’, bins=10, range=None, **args)``` :
 
     where
         - values is the array, the list of values to classify
@@ -678,7 +678,7 @@ To add a histogram :
     Can be repeated as many times as necessary
 
 To add an image :
-    - ```g.add_image(array,x_axis,y_axis,**args)```
+    - ```gr.image(array,x_axis,y_axis,**args)```
 
     where :
         - ```array``` represents the image to be displayed
@@ -686,14 +686,14 @@ To add an image :
         - ```**args``` all the other possible arguments for displaying an image
 
 To add contours :
-    - ```g.add_contours(self, contours=np.array([[]]), x_axe=None, y_axe=None, **args)``` :
+    - ```gr.contours(self, contours=np.array([[]]), x_axe=None, y_axe=None, **args)``` :
 
    where
         - ```**args``` gives the possible arguments for ```plt.contours()```
         - To add level lines to an image complete ```**args```, leaving the other arguments by default
 
 To add a polygon (coloured area delimited by a list of points) :
-    - ```g.add_polygon(ind,alpha0=0.7, facecolor=‘C3’,**args)```
+    - ```gr.polygon(ind,alpha0=0.7, facecolor=‘C3’,**args)```
 
 with ```ind``` an array/list of dimension (n,2) where n is the number of points.
 ```ind[:,0]``` corresponds to the abscissas of the points and
@@ -2534,7 +2534,7 @@ To display several Graphique in one, use a Multigraph
         scale : str, optional, default="linear"
             The scales of (x, y) axis :
             - default : "" (linear scale for both x and y)
-            - polar : polar projection : X=R and Y=Theta
+            - polar : polar projection : X=r and Y=theta
             - loglog, logx, logy : Logarithmic scale for both, x or y axis
             - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
 
@@ -2659,7 +2659,7 @@ To display several Graphique in one, use a Multigraph
         scale : str, optional, default="linear"
             The scales of (x, y) axis :
             - default : "" (linear scale for both x and y)
-            - polar : polar projection : X=R and Y=Theta
+            - polar : polar projection : X=r and Y=theta
             - loglog, logx, logy : Logarithmic scale for both, x or y axis
             - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
 
@@ -2797,8 +2797,54 @@ To display several Graphique in one, use a Multigraph
         """
         if axis_config not in ["bl", "tl", "tr", "br"]:
             raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
-
-        self.line(r, theta, z=z, marker=marker, share_colorbar=share_colorbar,
+        if isinstance(theta[0], list | np.ndarray) and not isinstance(r[0], list | np.ndarray):
+            r = [r for t in theta]
+        # dim_r: int = 0
+        # dim_theta: int = 0
+        # dim_z: int = 0
+        # if isinstance(theta, str):
+        #     marker = theta
+        #     theta = None
+        # if isinstance(z, str):
+        #     marker = z
+        #     z = None
+        # if theta is None:
+        #     theta = np.copy(r)
+        #     r = np.arange(0, len(theta))
+        # if isinstance(r[0], list) | isinstance(r[0], np.ndarray):
+        #     if isinstance(r[0][0], list) | isinstance(r[0][0], np.ndarray):
+        #         raise UserWarning("Graphique.line the x-axis dimension cannot be superior than 2")
+        #     else:
+        #         dim_r: int = 2
+        # else:
+        #     dim_r: int = 1
+        # if isinstance(theta[0], list) | isinstance(theta[0], np.ndarray):
+        #     if isinstance(theta[0][0], list) | isinstance(theta[0][0], np.ndarray):
+        #         raise UserWarning("Graphique.line the y-axis dimension cannot be superior than 2")
+        #     else:
+        #         dim_theta: int = 2
+        # else:
+        #     dim_theta: int = 1
+        # if z is not None and isinstance(z[0], list) | isinstance(z[0], np.ndarray):
+        #     if isinstance(z[0][0], list) | isinstance(z[0][0], np.ndarray):
+        #         raise UserWarning("Graphique.line the z-axis dimension cannot be superior than 2")
+        #     else:
+        #         dim_z: int = 2
+        # elif z is None:
+        #     dim_z: int = 0
+        # else:
+        #     dim_z: int = 1
+        #
+        # if (z is None or dim_z == 1) and dim_r == 1 and dim_theta == 2:
+        #     for thet in theta:
+        #         self.line(thet, r, z=z, marker=marker, share_colorbar=share_colorbar,
+        #                   scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+        # if (z is not None and dim_z == 2) and dim_r == 1 and dim_theta == 2:
+        #     for (thet, zz) in zip(theta, z):
+        #         self.line(thet, r, z=zz, marker=marker, share_colorbar=share_colorbar,
+        #                   scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+        # else:
+        self.line(theta, r, z=z, marker=marker, share_colorbar=share_colorbar,
                   scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
         self.config_ax(projection="polar")
 
@@ -3863,6 +3909,9 @@ To display several Graphique in one, use a Multigraph
         if "Figure" in kwargs:
             self.fig = kwargs["Figure"]
             del kwargs["Figure"]
+        if "title" in kwargs:
+            self.title = kwargs["title"]
+            del kwargs["title"]
 
         if (axis == "bl") | (axis == "all"):
             self.param_ax.update(kwargs)
@@ -4458,387 +4507,399 @@ To display several Graphique in one, use a Multigraph
             size_legend: np.float64 = 10 * size_colorbar
             size_space: np.float64 = 0.
             for i in range(len(self.custum_colorbar_colors)):
-                if "location" not in self.param_colorbar[i] or self.param_colorbar[i]["location"] == "right":
-                    right.append(i)
-                    if len(right) == 1:
-                        self.param_colorbar[i]["share_axis"] = True
-                    if "size" in self.param_colorbar[i].keys():
-                        sr += self.param_colorbar[i]["size"]
-                    else:
-                        sr += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i].keys()
-                            or not self.param_colorbar[i]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i].keys():
-                            sr += self.param_colorbar[i]["size_legend"]
-                        elif "size" in self.param_colorbar[i].keys():
-                            sr += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                if "hide" not in self.param_colorbar[i] or not self.param_colorbar[i]["hide"]:
+                    if "location" not in self.param_colorbar[i] or self.param_colorbar[i]["location"] == "right":
+                        right.append(i)
+                        if len(right) == 1:
+                            self.param_colorbar[i]["share_axis"] = True
+                        if "size" in self.param_colorbar[i].keys():
+                            sr += self.param_colorbar[i]["size"]
                         else:
-                            sr += size_legend
-                    if "space_between" in self.param_colorbar[i].keys():
-                        sr += self.param_colorbar[i]["space_between"]
-                    else:
-                        sr += size_space
-                elif self.param_colorbar[i]["location"] == "top":
-                    top.append(i)
-                    if len(top) == 1:
-                        self.param_colorbar[i]["share_axis"] = True
-                    if "size" in self.param_colorbar[i].keys():
-                        st += self.param_colorbar[i]["size"]
-                    else:
-                        st += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i].keys()
-                            or not self.param_colorbar[i]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i].keys():
-                            st += self.param_colorbar[i]["size_legend"]
-                        elif "size" in self.param_colorbar[i].keys():
-                            st += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            sr += size_colorbar
+                        if ("share_axis" not in self.param_colorbar[i].keys()
+                                or not self.param_colorbar[i]["share_axis"]):
+                            if "size_legend" in self.param_colorbar[i].keys():
+                                sr += self.param_colorbar[i]["size_legend"]
+                            elif "size" in self.param_colorbar[i].keys():
+                                sr += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            else:
+                                sr += size_legend
+                        if "space_between" in self.param_colorbar[i].keys():
+                            sr += self.param_colorbar[i]["space_between"]
                         else:
-                            st += size_legend
-                    if "space_between" in self.param_colorbar[i].keys():
-                        st += self.param_colorbar[i]["space_between"]
-                    else:
-                        st += size_space
-                elif self.param_colorbar[i]["location"] == "left":
-                    left.append(i)
-                    if len(left) == 1:
-                        self.param_colorbar[i]["share_axis"] = True
-                    if "size" in self.param_colorbar[i].keys():
-                        sl += self.param_colorbar[i]["size"]
-                    else:
-                        sl += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i].keys()
-                            or not self.param_colorbar[i]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i].keys():
-                            sl += self.param_colorbar[i]["size_legend"]
-                        elif "size" in self.param_colorbar[i].keys():
-                            sl += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            sr += size_space
+                    elif self.param_colorbar[i]["location"] == "top":
+                        top.append(i)
+                        if len(top) == 1:
+                            self.param_colorbar[i]["share_axis"] = True
+                        if "size" in self.param_colorbar[i].keys():
+                            st += self.param_colorbar[i]["size"]
                         else:
-                            sl += size_legend
-                    if "space_between" in self.param_colorbar[i].keys():
-                        sl += self.param_colorbar[i]["space_between"]
-                    else:
-                        sl += size_space
-                elif self.param_colorbar[i]["location"] == "bottom":
-                    bottom.append(i)
-                    if len(bottom) == 1:
-                        self.param_colorbar[i]["share_axis"] = True
-                    if "size" in self.param_colorbar[i].keys():
-                        sb += self.param_colorbar[i]["size"]
-                    else:
-                        sb += size_colorbar
-                    if ("share_axis" not in self.param_colorbar[i].keys()
-                            or not self.param_colorbar[i]["share_axis"]):
-                        if "size_legend" in self.param_colorbar[i].keys():
-                            sb += self.param_colorbar[i]["size_legend"]
-                        elif "size" in self.param_colorbar[i].keys():
-                            sb += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            st += size_colorbar
+                        if ("share_axis" not in self.param_colorbar[i].keys()
+                                or not self.param_colorbar[i]["share_axis"]):
+                            if "size_legend" in self.param_colorbar[i].keys():
+                                st += self.param_colorbar[i]["size_legend"]
+                            elif "size" in self.param_colorbar[i].keys():
+                                st += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            else:
+                                st += size_legend
+                        if "space_between" in self.param_colorbar[i].keys():
+                            st += self.param_colorbar[i]["space_between"]
                         else:
-                            sb += size_legend
-                    if "space_between" in self.param_colorbar[i].keys():
-                        sb += self.param_colorbar[i]["space_between"]
+                            st += size_space
+                    elif self.param_colorbar[i]["location"] == "left":
+                        left.append(i)
+                        if len(left) == 1:
+                            self.param_colorbar[i]["share_axis"] = True
+                        if "size" in self.param_colorbar[i].keys():
+                            sl += self.param_colorbar[i]["size"]
+                        else:
+                            sl += size_colorbar
+                        if ("share_axis" not in self.param_colorbar[i].keys()
+                                or not self.param_colorbar[i]["share_axis"]):
+                            if "size_legend" in self.param_colorbar[i].keys():
+                                sl += self.param_colorbar[i]["size_legend"]
+                            elif "size" in self.param_colorbar[i].keys():
+                                sl += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            else:
+                                sl += size_legend
+                        if "space_between" in self.param_colorbar[i].keys():
+                            sl += self.param_colorbar[i]["space_between"]
+                        else:
+                            sl += size_space
+                    elif self.param_colorbar[i]["location"] == "bottom":
+                        bottom.append(i)
+                        if len(bottom) == 1:
+                            self.param_colorbar[i]["share_axis"] = True
+                        if "size" in self.param_colorbar[i].keys():
+                            sb += self.param_colorbar[i]["size"]
+                        else:
+                            sb += size_colorbar
+                        if ("share_axis" not in self.param_colorbar[i].keys()
+                                or not self.param_colorbar[i]["share_axis"]):
+                            if "size_legend" in self.param_colorbar[i].keys():
+                                sb += self.param_colorbar[i]["size_legend"]
+                            elif "size" in self.param_colorbar[i].keys():
+                                sb += self.param_colorbar[i]["size"] * size_legend / size_colorbar
+                            else:
+                                sb += size_legend
+                        if "space_between" in self.param_colorbar[i].keys():
+                            sb += self.param_colorbar[i]["space_between"]
+                        else:
+                            sb += size_space
                     else:
-                        sb += size_space
-                else:
-                    raise UserWarning("Graphique.plot_colorbar : the location ", self.param_colorbar[i]["location"],
-                                      "isn't awalible. Please use right, top, left, bottom")
+                        raise UserWarning("Graphique.plot_colorbar : the location ", self.param_colorbar[i]["location"],
+                                          "isn't awalible. Please use right, top, left, bottom")
 
             pos_r: np.float64 = 1.
             pos_t: np.float64 = 1.
             pos_l: np.float64 = 0.
             pos_b: np.float64 = 0.
             for (i, ii) in zip(right, np.arange(len(right))):
-                cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
-                norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
                 params: dict = self.param_colorbar[i].copy()
-                fmt: str = ""
-                if "format" in params.keys():
-                    fmt = params["format"]
-                    del params["format"]
-                ticks_labels = None
-                if "ticks" in params.keys():
-                    self.ticks_colorbar[i] = params["ticks"]
-                    del params["ticks"]
-                if "ticks_labels" in params.keys():
-                    ticks_labels = params["ticks_labels"]
-                    del params["ticks_labels"]
-                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
-                scale: str = "linear"
-                if "scale" in params.keys():
-                    scale = params["scale"]
-                    del params["scale"]
-                share_axis: bool = False
-                if "share_axis" in params.keys():
-                    share_axis = params["share_axis"]
-                    del params["share_axis"]
-                if "location" in params.keys():
-                    del params["location"]
-                fraction: np.float64 = 1
-                if "fraction" in params.keys():
-                    fraction = params["fraction"]
-                    del params["fraction"]
+                if "hide" not in params or not params["hide"]:
+                    cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
+                    norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
+                    if "hide" in params:
+                        del params["hide"]
+                    fmt: str = ""
+                    if "format" in params.keys():
+                        fmt = params["format"]
+                        del params["format"]
+                    ticks_labels = None
+                    if "ticks" in params.keys():
+                        self.ticks_colorbar[i] = params["ticks"]
+                        del params["ticks"]
+                    if "ticks_labels" in params.keys():
+                        ticks_labels = params["ticks_labels"]
+                        del params["ticks_labels"]
+                    elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
+                    scale: str = "linear"
+                    if "scale" in params.keys():
+                        scale = params["scale"]
+                        del params["scale"]
+                    share_axis: bool = False
+                    if "share_axis" in params.keys():
+                        share_axis = params["share_axis"]
+                        del params["share_axis"]
+                    if "location" in params.keys():
+                        del params["location"]
+                    fraction: np.float64 = 1
+                    if "fraction" in params.keys():
+                        fraction = params["fraction"]
+                        del params["fraction"]
 
-                size_cb: np.float64 = size_colorbar
-                if "size" in params.keys():
-                    size_cb = params["size"]
-                    del params["size"]
-                size: np.float64 = size_cb
-                if not share_axis and "size_legend" in params.keys():
-                    size += params["size_legend"]
-                    del params["size_legend"]
-                elif not share_axis:
-                    size += size_legend
-                if "space_between" in params.keys():
-                    size += params["space_between"]
-                    del params["space_between"]
-                elif not share_axis:
-                    size += size_space
-                cax = self.ax.inset_axes([pos_r - size, 0.5 - fraction / 2.,
-                                          size_cb, fraction])
-                # cax = self.fig.add_axes([pos_r - size, 0.5 - fraction / 2.,
-                #                           size_cb, fraction])
-                self.axes.append(cax)
-                pos_r -= size
-                # cax.set_xticks([])
-                # cax.set_yticks([])
-                # cax.set_axis_off()
+                    size_cb: np.float64 = size_colorbar
+                    if "size" in params.keys():
+                        size_cb = params["size"]
+                        del params["size"]
+                    size: np.float64 = size_cb
+                    if not share_axis and "size_legend" in params.keys():
+                        size += params["size_legend"]
+                        del params["size_legend"]
+                    elif not share_axis:
+                        size += size_legend
+                    if "space_between" in params.keys():
+                        size += params["space_between"]
+                        del params["space_between"]
+                    elif not share_axis:
+                        size += size_space
+                    cax = self.ax.inset_axes([pos_r - size, 0.5 - fraction / 2.,
+                                              size_cb, fraction])
+                    # cax = self.fig.add_axes([pos_r - size, 0.5 - fraction / 2.,
+                    #                           size_cb, fraction])
+                    self.axes.append(cax)
+                    pos_r -= size
+                    # cax.set_xticks([])
+                    # cax.set_yticks([])
+                    # cax.set_axis_off()
 
-                # if share_axis:
-                #     cax.sharey = self.colorbar[-1].ax
-                self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
-                                                       cax=cax, **params))
-                self.cmap.append(cmap)
-                self.norms.append(norm)
-                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
-                    self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
-                      and self.ticks_colorbar[i][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=[])
+                    # if share_axis:
+                    #     cax.sharey = self.colorbar[-1].ax
+                    self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
+                                                           cax=cax, **params))
+                    self.cmap.append(cmap)
+                    self.norms.append(norm)
+                    if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
+                        self.colorbar[-1].ax.set_yscale(scale)
+                    elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                          and self.ticks_colorbar[i][0] > - np.inf):
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=[])
 
             for (i, ii) in zip(top, np.arange(len(right))):
-                cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
-                norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
                 params: dict = self.param_colorbar[i].copy()
-                fmt: str = ""
-                if "format" in params.keys():
-                    fmt = params["format"]
-                    del params["format"]
-                ticks_labels = None
-                if "ticks" in params.keys():
-                    self.ticks_colorbar[i] = params["ticks"]
-                    del params["ticks"]
-                if "ticks_labels" in params.keys():
-                    ticks_labels = params["ticks_labels"]
-                    del params["ticks_labels"]
-                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
-                scale: str = "linear"
-                if "scale" in params.keys():
-                    scale = params["scale"]
-                    del params["scale"]
-                share_axis: bool = False
-                if "share_axis" in params.keys():
-                    share_axis = params["share_axis"]
-                    del params["share_axis"]
-                if "location" in params.keys():
-                    del params["location"]
 
-                fraction: np.float64 = 1.
-                if "fraction" in params.keys():
-                    fraction = params["fraction"]
-                    del params["fraction"]
+                if "hide" not in params or not params["hide"]:
+                    cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
+                    norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
+                    if "hide" in params:
+                        del params["hide"]
+                    fmt: str = ""
+                    if "format" in params.keys():
+                        fmt = params["format"]
+                        del params["format"]
+                    ticks_labels = None
+                    if "ticks" in params.keys():
+                        self.ticks_colorbar[i] = params["ticks"]
+                        del params["ticks"]
+                    if "ticks_labels" in params.keys():
+                        ticks_labels = params["ticks_labels"]
+                        del params["ticks_labels"]
+                    elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
+                    scale: str = "linear"
+                    if "scale" in params.keys():
+                        scale = params["scale"]
+                        del params["scale"]
+                    share_axis: bool = False
+                    if "share_axis" in params.keys():
+                        share_axis = params["share_axis"]
+                        del params["share_axis"]
+                    if "location" in params.keys():
+                        del params["location"]
 
-                size_cb: np.float64 = size_colorbar
-                if "size" in params.keys():
-                    size_cb = params["size"]
-                    del params["size"]
-                size: np.float64 = size_cb
-                if not share_axis and "size_legend" in params.keys():
-                    size += params["size_legend"]
-                    del params["size_legend"]
-                elif not share_axis:
-                    size += size_legend
-                if "space_between" in params.keys():
-                    size += params["space_between"]
-                    del params["space_between"]
-                elif not share_axis:
-                    size += size_space
-                cax = self.ax.inset_axes([0.5 - fraction / 2., pos_t - size,
-                                          fraction, size_cb])
-                # cax = self.fig.add_axes([0.5 - fraction / 2., pos_t - size,
-                #                           fraction, size_cb])
-                self.axes.append(cax)
-                pos_t -= size
-                # cax.set_xticks([])
-                # cax.set_yticks([])
-                # cax.set_axis_off()
+                    fraction: np.float64 = 1.
+                    if "fraction" in params.keys():
+                        fraction = params["fraction"]
+                        del params["fraction"]
 
-                # if share_axis:
-                #     cax.sharey = self.colorbar[-1].ax
-                self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
-                                                       cax=cax, **params))
-                self.cmap.append(cmap)
-                self.norms.append(norm)
-                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
-                    self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
-                      and self.ticks_colorbar[i][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=[])
+                    size_cb: np.float64 = size_colorbar
+                    if "size" in params.keys():
+                        size_cb = params["size"]
+                        del params["size"]
+                    size: np.float64 = size_cb
+                    if not share_axis and "size_legend" in params.keys():
+                        size += params["size_legend"]
+                        del params["size_legend"]
+                    elif not share_axis:
+                        size += size_legend
+                    if "space_between" in params.keys():
+                        size += params["space_between"]
+                        del params["space_between"]
+                    elif not share_axis:
+                        size += size_space
+                    cax = self.ax.inset_axes([0.5 - fraction / 2., pos_t - size,
+                                              fraction, size_cb])
+                    # cax = self.fig.add_axes([0.5 - fraction / 2., pos_t - size,
+                    #                           fraction, size_cb])
+                    self.axes.append(cax)
+                    pos_t -= size
+                    # cax.set_xticks([])
+                    # cax.set_yticks([])
+                    # cax.set_axis_off()
 
-            for (i, ii) in zip(left, np.arange(len(right))):
-                cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
-                norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i].copy()
-                fmt: str = ""
-                if "format" in params.keys():
-                    fmt = params["format"]
-                    del params["format"]
-                ticks_labels = None
-                if "ticks" in params.keys():
-                    self.ticks_colorbar[i] = params["ticks"]
-                    del params["ticks"]
-                if "ticks_labels" in params.keys():
-                    ticks_labels = params["ticks_labels"]
-                    del params["ticks_labels"]
-                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][
-                    0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
-                scale: str = "linear"
-                if "scale" in params.keys():
-                    scale = params["scale"]
-                    del params["scale"]
-                share_axis: bool = False
-                if "share_axis" in params.keys():
-                    share_axis = params["share_axis"]
-                    del params["share_axis"]
-                if "location" in params.keys():
-                    del params["location"]
+                    # if share_axis:
+                    #     cax.sharey = self.colorbar[-1].ax
+                    self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
+                                                           cax=cax, **params))
+                    self.cmap.append(cmap)
+                    self.norms.append(norm)
+                    if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
+                        self.colorbar[-1].ax.set_yscale(scale)
+                    elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                          and self.ticks_colorbar[i][0] > - np.inf):
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=[])
 
-                fraction: np.float64 = 1
-                if "fraction" in params.keys():
-                    fraction = params["fraction"]
-                    del params["fraction"]
+                    for (i, ii) in zip(left, np.arange(len(right))):
+                        cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
+                        norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
+                        params: dict = self.param_colorbar[i].copy()
+                        fmt: str = ""
+                        if "format" in params.keys():
+                            fmt = params["format"]
+                            del params["format"]
+                        ticks_labels = None
+                        if "ticks" in params.keys():
+                            self.ticks_colorbar[i] = params["ticks"]
+                            del params["ticks"]
+                        if "ticks_labels" in params.keys():
+                            ticks_labels = params["ticks_labels"]
+                            del params["ticks_labels"]
+                        elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][
+                            0] > - np.inf:
+                            ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
+                        scale: str = "linear"
+                        if "scale" in params.keys():
+                            scale = params["scale"]
+                            del params["scale"]
+                        share_axis: bool = False
+                        if "share_axis" in params.keys():
+                            share_axis = params["share_axis"]
+                            del params["share_axis"]
+                        if "location" in params.keys():
+                            del params["location"]
 
-                size_cb: np.float64 = size_colorbar
-                if "size" in params.keys():
-                    size_cb = params["size"]
-                    del params["size"]
-                size: np.float64 = size_cb
-                if not share_axis and "size_legend" in params.keys():
-                    size += params["size_legend"]
-                    del params["size_legend"]
-                elif not share_axis:
-                    size += size_legend
+                        fraction: np.float64 = 1
+                        if "fraction" in params.keys():
+                            fraction = params["fraction"]
+                            del params["fraction"]
 
-                if "space_between" in params.keys():
-                    size += params["space_between"]
-                    del params["space_between"]
-                elif not share_axis:
-                    size += size_space
+                        size_cb: np.float64 = size_colorbar
+                        if "size" in params.keys():
+                            size_cb = params["size"]
+                            del params["size"]
+                        size: np.float64 = size_cb
+                        if not share_axis and "size_legend" in params.keys():
+                            size += params["size_legend"]
+                            del params["size_legend"]
+                        elif not share_axis:
+                            size += size_legend
 
-                cax = self.ax.inset_axes([pos_l, 0.5 - fraction / 2., size_cb, fraction])
-                # cax = self.fig.add_axes([pos_l, 0.5 - fraction / 2., size_cb, fraction])
-                self.axes.append(cax)
-                pos_l += size
-                # cax.set_xticks([])
-                # cax.set_yticks([])
-                # cax.set_axis_off()
+                        if "space_between" in params.keys():
+                            size += params["space_between"]
+                            del params["space_between"]
+                        elif not share_axis:
+                            size += size_space
 
-                # if share_axis:
-                #     cax.sharey = self.colorbar[-1].ax
-                self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
-                                                       cax=cax, **params))
-                self.cmap.append(cmap)
-                self.norms.append(norm)
-                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
-                    self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
-                      and self.ticks_colorbar[i][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=[])
+                        cax = self.ax.inset_axes([pos_l, 0.5 - fraction / 2., size_cb, fraction])
+                        # cax = self.fig.add_axes([pos_l, 0.5 - fraction / 2., size_cb, fraction])
+                        self.axes.append(cax)
+                        pos_l += size
+                        # cax.set_xticks([])
+                        # cax.set_yticks([])
+                        # cax.set_axis_off()
+
+                        # if share_axis:
+                        #     cax.sharey = self.colorbar[-1].ax
+                        self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
+                                                               cax=cax, **params))
+                        self.cmap.append(cmap)
+                        self.norms.append(norm)
+                        if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
+                            self.colorbar[-1].ax.set_yscale(scale)
+                        elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                              and self.ticks_colorbar[i][0] > - np.inf):
+                            self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                        elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                            self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                        elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
+                            self.colorbar[-1].set_ticks(ticks=[])
 
             for (i, ii) in zip(bottom, np.arange(len(right))):
-                cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
-                norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
-                params: dict = self.param_colorbar[i].copy()
-                fmt: str = ""
-                if "format" in params.keys():
-                    fmt = params["format"]
-                    del params["format"]
-                ticks_labels = None
-                if "ticks" in params.keys():
-                    self.ticks_colorbar[i] = params["ticks"]
-                    del params["ticks"]
-                if "ticks_labels" in params.keys():
-                    ticks_labels = params["ticks_labels"]
-                    del params["ticks_labels"]
-                elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
-                scale: str = "linear"
-                if "scale" in params.keys():
-                    scale = params["scale"]
-                    del params["scale"]
-                share_axis: bool = False
-                if "share_axis" in params.keys():
-                    share_axis = params["share_axis"]
-                    del params["share_axis"]
-                if "location" in params.keys():
-                    del params["location"]
 
-                fraction: np.float64 = np.double(1.)
-                if "fraction" in params.keys():
-                    fraction = params["fraction"]
-                    del params["fraction"]
+                if "hide" not in params or not params["hide"]:
+                    if "hide" in params:
+                        del params["hide"]
+                    cmap = mpl.colors.ListedColormap(self.custum_colorbar_colors[i])
+                    norm = mpl.colors.BoundaryNorm(self.custum_colorbar_values[i], cmap.N)
+                    params: dict = self.param_colorbar[i].copy()
+                    fmt: str = ""
+                    if "format" in params.keys():
+                        fmt = params["format"]
+                        del params["format"]
+                    ticks_labels = None
+                    if "ticks" in params.keys():
+                        self.ticks_colorbar[i] = params["ticks"]
+                        del params["ticks"]
+                    if "ticks_labels" in params.keys():
+                        ticks_labels = params["ticks_labels"]
+                        del params["ticks_labels"]
+                    elif fmt != "" and len(self.ticks_colorbar[i]) != 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        ticks_labels = [fmt.format(x) for x in self.ticks_colorbar[i]]
+                    scale: str = "linear"
+                    if "scale" in params.keys():
+                        scale = params["scale"]
+                        del params["scale"]
+                    share_axis: bool = False
+                    if "share_axis" in params.keys():
+                        share_axis = params["share_axis"]
+                        del params["share_axis"]
+                    if "location" in params.keys():
+                        del params["location"]
 
-                size_cb: np.float64 = size_colorbar
-                if "size" in params.keys():
-                    size_cb = params["size"]
-                    del params["size"]
-                size: np.float64 = size_cb
-                if not share_axis and "size_legend" in params.keys():
-                    size += params["size_legend"]
-                    del params["size_legend"]
-                elif not share_axis:
-                    size += size_legend
-                if "space_between" in params.keys():
-                    size += params["space_between"]
-                    del params["space_between"]
-                elif not share_axis:
-                    size += size_space
-                cax = self.ax.inset_axes([0.5 - fraction / 2., pos_b, size_cb, fraction])
-                # cax = self.fig.add_axes([0.5 - fraction / 2., pos_b, size_cb, fraction])
-                self.axes.append(cax)
-                pos_b += size
-                # cax.set_xticks([])
-                # cax.set_yticks([])
-                # cax.set_axis_off()
+                    fraction: np.float64 = np.double(1.)
+                    if "fraction" in params.keys():
+                        fraction = params["fraction"]
+                        del params["fraction"]
 
-                # if share_axis:
-                #     cax.sharey = self.colorbar[-1].ax
-                self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
-                                                       cax=cax, **params))
-                self.cmap.append(cmap)
-                self.norms.append(norm)
-                if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
-                    self.colorbar[-1].ax.set_yscale(scale)
-                elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
-                      and self.ticks_colorbar[i][0] > - np.inf):
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
-                elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
-                    self.colorbar[-1].set_ticks(ticks=[])
+                    size_cb: np.float64 = size_colorbar
+                    if "size" in params.keys():
+                        size_cb = params["size"]
+                        del params["size"]
+                    size: np.float64 = size_cb
+                    if not share_axis and "size_legend" in params.keys():
+                        size += params["size_legend"]
+                        del params["size_legend"]
+                    elif not share_axis:
+                        size += size_legend
+                    if "space_between" in params.keys():
+                        size += params["space_between"]
+                        del params["space_between"]
+                    elif not share_axis:
+                        size += size_space
+                    cax = self.ax.inset_axes([0.5 - fraction / 2., pos_b, size_cb, fraction])
+                    # cax = self.fig.add_axes([0.5 - fraction / 2., pos_b, size_cb, fraction])
+                    self.axes.append(cax)
+                    pos_b += size
+                    # cax.set_xticks([])
+                    # cax.set_yticks([])
+                    # cax.set_axis_off()
+
+                    # if share_axis:
+                    #     cax.sharey = self.colorbar[-1].ax
+                    self.colorbar.append(self.fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap, norm=norm),
+                                                           cax=cax, **params))
+                    self.cmap.append(cmap)
+                    self.norms.append(norm)
+                    if len(self.ticks_colorbar[i]) == 0 and scale != "linear":
+                        self.colorbar[-1].ax.set_yscale(scale)
+                    elif (ticks_labels is not None and len(self.ticks_colorbar[i]) > 0
+                          and self.ticks_colorbar[i][0] > - np.inf):
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i], labels=ticks_labels)
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] > - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=self.ticks_colorbar[i])
+                    elif len(self.ticks_colorbar[i]) > 0 and self.ticks_colorbar[i][0] == - np.inf:
+                        self.colorbar[-1].set_ticks(ticks=[])
 
             if len(right) > 0:
                 if "space_between" in self.param_colorbar[right[-1]].keys():
@@ -5838,7 +5899,7 @@ def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarra
     scale : str, optional, default="linear"
         The scales of (x, y) axis :
         - default : "" (linear scale for both x and y)
-        - polar : polar projection : X=R and Y=Theta
+        - polar : polar projection : X=r and Y=theta
         - loglog, logx, logy : Logarithmic scale for both, x or y axis
         - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
 
@@ -5894,7 +5955,7 @@ def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarr
     scale : str, optional, default="linear"
         The scales of (x, y) axis :
         - default : "" (linear scale for both x and y)
-        - polar : polar projection : X=R and Y=Theta
+        - polar : polar projection : X=r and Y=theta
         - loglog, logx, logy : Logarithmic scale for both, x or y axis
         - symloglog, symlogx, symlogy : Logarithmic scale for both, x or y axis with positive and négative values
 
@@ -5929,7 +5990,7 @@ def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarr
     return graph
 
 
-def polar(R: list | np.ndarray, Theta: list | np.ndarray,
+def polar(r: list | np.ndarray, theta: list | np.ndarray,
           z: np.ndarray | list | None = None, marker: str = "",
           share_colorbar: bool = False, scale_z: str = "linear", kwargs_colorbar: dict | None = None,
           axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs: dict) -> Graphique:
@@ -5938,9 +5999,10 @@ def polar(R: list | np.ndarray, Theta: list | np.ndarray,
 
     Parameters
     ----------
-    R : list | array_like
+
+    r : list | array_like
         Radius
-    Theta : list | array_like
+    theta : list | array_like
         Angle(s)
     z : list | array_like, optional
         z-axis (represented by a colorscale)
@@ -5984,7 +6046,7 @@ def polar(R: list | np.ndarray, Theta: list | np.ndarray,
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
     graph: Graphique = Graphique()
-    graph.polar(R, Theta, z=z, marker=marker, share_colorbar=share_colorbar,
+    graph.polar(r=r, theta=theta, z=z, marker=marker, share_colorbar=share_colorbar,
                 scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
     if show:
         graph.show()

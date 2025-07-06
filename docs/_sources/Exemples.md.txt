@@ -1,0 +1,211 @@
+# Examples of uses
+
+Those are few examples of possible plots by PheiGraph.
+Many are directly derived from the [matplotlib exemples](https://matplotlib.org/stable/gallery/index.html) here :
+In all the following exemples, one assumes the folowing library are imported :
+```
+import numpy as np
+import phenigraph as g
+```
+
+## Lines
+
+The operations to plot lines with phenigraph are very closed to the usuals operations in matplotlib.
+But in some cases, they are built to be more efficents.
+
+### A linear plot
+
+Let's start to draw a simple line in linear coordinate, a cosinus :
+
+```
+x = np.linespace(0, 4. * np.pi,100)
+y = np.cos(x)
+
+gr = g.line(x, y)
+```
+![result](plot_line_1.png)
+
+One can plot another curve under the previous one :
+```
+gr.line(x, np.sin(x))
+gr.show()
+```
+
+![result](plot_line_2.png)
+
+The name of the methods to add a line/image/histogram to a Graphique and their parameters are similar to the names of functions that can générate a new Graphique with thoses lines/images/histograms.
+Thoses two operations can be summerized in one single line :
+
+```
+gr = g.line(x, [np.cos(x), np.sin(x)])
+```
+
+### Multiple lines
+
+This new syntax allows plotting multiple lines very easily.
+If they are more than four lines, a colormap is used to differentiate the curves :
+
+
+```
+x = np.linspace(0, 10, 100)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x**s for s in slopes])
+```
+![result](plot_multiples_lines_1.png)
+
+If like in this example, each curve is associated with a specific value, it's possible to add a colorbar to the plot by simply adding a third array of the size of the number of lines :
+
+
+```
+x = np.linspace(0, 10, 100)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x**s for s in slopes], slopes)
+```
+![result](plot_multiples_lines_2.png)
+
+If one wants to plot only markers on this plot, the syntax is similar than for matplotlib :
+
+
+```
+x = np.linspace(0, 10, 20)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x**s for s in slopes], slopes, "o")
+```
+![result](plot_multiples_lines_3.png)
+
+If one wants to also draw the lines in addition to the markers, one simply have to add this parameter in the `line` function.
+It will be applied for each curve :
+
+```
+x = np.linspace(0, 10, 20)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x*s for s in slopes], slopes, "o", linestyle="-")
+```
+![result](plot_multiples_lines_4.png)
+
+To have a specific parameter for each curve, one simply has to provide a list with the parameters insted of the parameter itself:
+
+
+```
+x = np.linspace(0, 10, 20)
+slopes = np.linspace(1,3,4)
+gr = g.line(x, [x**s for s in slopes], "o", linestyle="-", 
+            label=["s={:.3}".format(s) for s in slopes])
+```
+![result](plot_multiples_lines_5.png)
+
+The colorbar properties can directly be configurate inside `line`. This is useful, for example, to add a label to it :
+
+```
+x = np.linspace(0, 10, 20)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x*s for s in slopes], slopes, "o", linestyle="-", kwargs_colorbar={"label":"Slopes"})
+```
+This is equivalent to :
+
+
+```
+x = np.linspace(0, 10, 20)
+slopes = np.linspace(1,3,10)
+gr = g.line(x, [x*s for s in slopes], slopes, "o", linestyle="-", kwargs_colorbar={"label":"Slopes"})
+gr.config_colorbar(0, label="Slopes") # The first parameter is the number associated to the colorbar to be configurated. There is only one colorbar here so it is set to 0.
+```
+
+![result](plot_multiples_lines_6.png)
+
+## 3 dimensionals data in 2D plots : the colorscale
+
+It's possible to represent 3-dimensional data with one dimension represented by a colorscale
+
+```
+x = np.linspace(0, 4. * np.pi, 100)
+y = np.cos(x)
+z = np.sin(x)
+
+gr = g.loglog(x, y, z)
+```
+
+![result](plot_colorscale_1.png)
+
+## Configure the plots
+
+It's possible to configurate the plot via the `config_ax` method. This method applies to the Graphique axis the method [axis.set](https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set.html) 
+One can set the limits for the x or y-axis via the parameters `xlim` and `ylim`, the x and y labels via `xlabel` and `ylabel`,
+the title, the facecolor.
+One can also configurate the whole Figure with the `config_fig` method
+Let us take our previous Graphique and configure it :
+```
+gr.config_ax(xlabel="x axis", ylabel="y axis", xlim=[0,8], ylim=[0,25], facecolor=g.C9, title="Some lines")
+gr.grid = True  # Adding a grid to the plot
+gr.config_fig(facecolor=g.C7)
+gr.show()
+```
+![result](plot_configuration_1.png)
+
+It can be useful to get transparent figures, for example, if one wants to use them on slides. One can use in that case the `g.Ctrensp` color for both the axis and the figure
+
+### Setting the scales
+
+The scales can be set via the `config_ax` method via the keywords `xscale` and `yscale`. The available scales `linear`, `log` for a logarithmic scale 
+or `symlog` for a logarithmique scale for both positives and negatives values.
+One can also build a Graphique with dedicated derived methods/functions `loglog` for a logarithmic scale on both axis, 
+`logx` for a logarithmic scale on axis x and linear on axis y, `logy`, `symloglog`, `symlogx` or `symlogy`.
+```
+x = np.logspace(0, 10, 20)
+pwd = np.linspace(1,3,10)
+gr = g.line(x, [x**p for p in pwd], pwd, "o", linestyle="-", show=False)
+gr.config_ax(xscale="log", yscale="log")
+gr.show()
+```
+is equivalent to
+```
+x = np.logspace(0, 10, 20)
+pwd = np.linspace(1,3,10)
+gr = g.loglog(x, [x**p for p in pwd], pwd, "o", linestyle="-")
+```
+
+
+![result](plot_scale_1.png)
+
+Another example with the tan function :
+```
+x = np.linspace(0, 2. * np.pi, 1000)
+gr = g.logy(x, np.tan(x), ".")
+```
+
+![result](plot_scale_2.png)
+
+To see both positives and negatives values, one can use :
+```
+x = np.linspace(0, 2. * np.pi, 1000)
+gr = g.symlogy(x, np.tan(x), ".")
+```
+
+![result](plot_scale_3.png)
+
+### Polar plots
+
+This is also possible to project the Graphique in polar coordinate :
+```
+r=np.linspace(0,1,100)
+theta=np.linspace(0,2*np.pi,100)
+phi=np.linspace(-np.pi, np.pi,10)
+gr=g.polar(r, [theta+p for p in phi])
+```
+![result](plot_polar.png)
+
+
+
+## Saving the Graphique
+
+To save the plot itself, one should use the `save` method. The Graphique has a default filename which is use for both the .npz file and the images via `save_figure`. The default directory to save the plot is the working directory, but it can also be set to another one if needed.
+
+To save an image of the figure, one can use the `save_figure` method. The image will be saved with the same name that the Graphique itself in the format `Graphique.ext` which is `png` by default.
+```
+gr.filename = "Some_lines"
+gr.directory = "your_directory"
+gr.save()
+gr.ext = "svg"  # The image will be save in svg
+gr.save_figure(dpi=400)  # The image is save with 400 dpi
+```
+
