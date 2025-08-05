@@ -17,6 +17,7 @@ This library allows you to save a matplotlib plot in a dedicated object so that 
 
    Installation
    Exemples
+   colors
    phenigraph
 
 
@@ -25,6 +26,8 @@ This library allows you to save a matplotlib plot in a dedicated object so that 
 .. image:: plot_multiples_lines_2.png
 .. image:: plot_multiples_lines_6.png
 .. image:: plot_multiples_lines_5.png
+.. image:: plot_errorplot_2.png
+.. image:: plot_errorbar_3.png
 .. image:: plot_polar.png
 
 

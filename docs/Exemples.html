@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="PheniGraph package" href="phenigraph.html" />
+    <link rel="next" title="Colors" href="colors.html" />
     <link rel="prev" title="Installation" href="Installation.html" /> 
 </head>
 
@@ -51,18 +51,41 @@
 <li class="toctree-l2"><a class="reference internal" href="#lines">Lines</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#a-linear-plot">A linear plot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multiple-lines">Multiple lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#errors-plots">Errors plots</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#dimensionals-data-in-2d-plots-the-colorscale">3 dimensionals data in 2D plots : the colorscale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#text">Text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polygons">Polygons</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#integral-as-the-area-under-a-curve">Integral as the area under a curve</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#image">Image</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-one-dimensional-image">A one dimensional image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-colormap">The colormap</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saturation">Saturation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#colored-image">Colored image</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#contours">Contours</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#levels-of-an-image">Levels of an image</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#configure-the-plots">Configure the plots</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#setting-the-scales">Setting the scales</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#polar-plots">Polar plots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-the-plot-sequence">Setting the plot sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#customization-of-graphique-s-elements">Customization of Graphique’s elements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-the-global-font-properties">Setting the global font properties</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#saving-the-graphique">Saving the Graphique</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="phenigraph.html">PheniGraph package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="colors.html">Colors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phenigraph.html">Documentation</a></li>
 </ul>
 
         </div>
@@ -131,6 +154,7 @@ If they are more than four lines, a colormap is used to differentiate the curves
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 <span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">])</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;Multiples_lines1&quot;</span><span class="p">)</span> <span class="c1"># Saving the Graphique to use it and modify it latter</span>
 </pre></div>
 </div>
 <p><img alt="result" src="_images/plot_multiples_lines_1.png" /></p>
@@ -150,24 +174,24 @@ If they are more than four lines, a colormap is used to differentiate the curves
 <p><img alt="result" src="_images/plot_multiples_lines_3.png" /></p>
 <p>If one wants to also draw the lines in addition to the markers, one simply have to add this parameter in the <code class="docutils literal notranslate"><span class="pre">line</span></code> function.
 It will be applied for each curve :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">Graphique</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><img alt="result" src="_images/plot_multiples_lines_4.png" /></p>
 <p>To have a specific parameter for each curve, one simply has to provide a list with the parameters insted of the parameter itself:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">**</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> 
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">gr</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">Graphique</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span> <span class="o">**</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
             <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;s=</span><span class="si">{:.3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">])</span>
 </pre></div>
 </div>
 <p><img alt="result" src="_images/plot_multiples_lines_5.png" /></p>
 <p>The colorbar properties can directly be configurate inside <code class="docutils literal notranslate"><span class="pre">line</span></code>. This is useful, for example, to add a label to it :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-<span class="n">slopes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">kwargs_colorbar</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span><span class="s2">&quot;Slopes&quot;</span><span class="p">})</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">slopes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">Graphique</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slopes</span><span class="p">],</span> <span class="n">slopes</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">kwargs_colorbar</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Slopes&quot;</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>This is equivalent to :</p>
@@ -178,6 +202,74 @@ It will be applied for each curve :</p>
 </pre></div>
 </div>
 <p><img alt="result" src="_images/plot_multiples_lines_6.png" /></p>
+</section>
+<section id="errors-plots">
+<h3>Errors plots<a class="headerlink" href="#errors-plots" title="Link to this heading"></a></h3>
+<p>There are two ways to represants errors with bars and <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> function or with shaded areas with <code class="docutils literal notranslate"><span class="pre">errorplot</span></code> function.
+The syntax is very similar to the <code class="docutils literal notranslate"><span class="pre">line</span></code> function and its derivatives <code class="docutils literal notranslate"><span class="pre">loglog</span></code>, <code class="docutils literal notranslate"><span class="pre">logx</span></code>, <code class="docutils literal notranslate"><span class="pre">polar</span></code>…
+The third argument is dedicated for errors.
+The error can be a constant :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">err_y</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">errorplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="n">err_y</span><span class="p">,</span> <span class="n">alpha_error</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_errorplot_1.png" /></p>
+<p>with the parameter <code class="docutils literal notranslate"><span class="pre">alpha_error</span></code> that set the shaded eras transparency</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">err_y</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="n">err_y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">])</span>
+
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_errorbar_1.png" /></p>
+<p>The errors can also be different for each point :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+<span class="n">err_y1</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y1</span><span class="p">)</span>
+<span class="n">err_y2</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+
+<span class="n">grp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C20</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">grp</span><span class="o">.</span><span class="n">errorplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="p">[</span><span class="n">err_y1</span><span class="p">,</span> <span class="n">err_y2</span><span class="p">],</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">])</span>
+<span class="n">grapp</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filemame</span><span class="o">=</span><span class="s2">&quot;Errorplot1&quot;</span><span class="p">)</span> <span class="c1"># Saving for Graphique tu reuse it latter</span>
+<span class="n">grp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">grb</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C20</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">grb</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="p">[</span><span class="n">err_y1</span><span class="p">,</span> <span class="n">err_y2</span><span class="p">],</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">])</span>
+<span class="n">grb</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filemame</span><span class="o">=</span><span class="s2">&quot;Errorbar1&quot;</span><span class="p">)</span> <span class="c1"># Saving for Graphique tu reuse it latter</span>
+<span class="n">grb</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> 
+
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_errorplot_2.png" /></p>
+<p><img alt="result" src="_images/plot_errorbar_2.png" /></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> function can also represent errors along the x-axis :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">x1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">x</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mf">0.01</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+<span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">30</span><span class="p">))</span>
+
+<span class="n">err_y1</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y1</span><span class="p">)</span>
+<span class="n">err_y2</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+<span class="n">err_x1</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+<span class="n">err_x2</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)],</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C20</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># The model is plotted in gray below the datas</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">errorbar</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">],</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="p">[</span><span class="n">err_y1</span><span class="p">,</span> <span class="n">err_y2</span><span class="p">],</span> <span class="p">[</span><span class="n">err_x1</span><span class="p">,</span> <span class="n">err_x2</span><span class="p">],</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+ <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="s2">&quot;cos&quot;</span><span class="p">])</span>
+
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_errorbar_3.png" /></p>
 </section>
 </section>
 <section id="dimensionals-data-in-2d-plots-the-colorscale">
@@ -192,6 +284,186 @@ It will be applied for each curve :</p>
 </div>
 <p><img alt="result" src="_images/plot_colorscale_1.png" /></p>
 </section>
+<section id="text">
+<h2>Text<a class="headerlink" href="#text" title="Link to this heading"></a></h2>
+<p>It’s possible to directly write some text inside the plot with the <code class="docutils literal notranslate"><span class="pre">text</span></code> method directly derived from <code class="docutils literal notranslate"><span class="pre">plt.text</span></code></p>
+<p>The first argument is the abscissa of the text’s alignment point, the second its ordinate and the third the text itself.
+It’s possible to configurate the location of this reference point relatively to the text and to rotate the text by
+setting the <code class="docutils literal notranslate"><span class="pre">horizontalalignment</span></code> and <code class="docutils literal notranslate"><span class="pre">vertical</span> <span class="pre">alignment</span></code> parameters.<br />
+As for the <code class="docutils literal notranslate"><span class="pre">line</span></code> method, it’s possible to add several texts at once.</p>
+<p>This example is directly adapted from the <a class="reference external" href="https://matplotlib.org/stable/gallery/text_labels_and_annotations/text_alignment.html">matplotlib documentation</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Creating a square </span>
+
+<span class="n">gr</span><span class="o">.</span><span class="n">text</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;left top&#39;</span><span class="p">,</span> <span class="s1">&#39;center top&#39;</span><span class="p">,</span> <span class="s1">&#39;right top&#39;</span><span class="p">],</span> 
+        <span class="n">horizontalalignment</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">],</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C2</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">text</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;left bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;middle&#39;</span><span class="p">,</span> <span class="s1">&#39;right bottom&#39;</span><span class="p">],</span>
+        <span class="n">horizontalalignment</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">],</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">],</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">text</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;right center&#39;</span><span class="p">,</span> <span class="s1">&#39;left center&#39;</span><span class="p">,</span> <span class="s1">&#39;centered&#39;</span><span class="p">,</span> <span class="s1">&#39;rotated</span><span class="se">\n</span><span class="s1">with new line&#39;</span><span class="p">],</span>
+        <span class="n">horizontalalignment</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39; left&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">],</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> 
+        <span class="n">rotation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="mi">45</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C6</span><span class="p">)</span>
+
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span> <span class="n">ylim</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.5</span><span class="p">])</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_text.png" /></p>
+</section>
+<section id="polygons">
+<h2>Polygons<a class="headerlink" href="#polygons" title="Link to this heading"></a></h2>
+<p>It’s possible to draw shaded areas using the <code class="docutils literal notranslate"><span class="pre">polygon</span></code> method. This method uses the <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.PathPatch.html#matplotlib.patches.PathPatch">matplotlib.patches.PathPatch</a>.</p>
+<section id="integral-as-the-area-under-a-curve">
+<h3>Integral as the area under a curve<a class="headerlink" href="#integral-as-the-area-under-a-curve" title="Link to this heading"></a></h3>
+<p>This exemple is directly adapted from the <a class="reference external" href="https://matplotlib.org/stable/gallery/showcase/integral.html#sphx-glr-gallery-showcase-integral-py">matplotlib exemples</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">7</span><span class="p">)</span> <span class="o">+</span> <span class="mi">85</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="c1"># x axis for the line</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># y axis for the line</span>
+
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">9</span>  <span class="c1"># integral limits</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span> <span class="c1"># x axis for the polygon</span>
+<span class="n">yp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">])</span> <span class="c1"># y axis for the polygon</span>
+<span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xp</span><span class="p">,</span> <span class="n">yp</span><span class="p">])</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Polygone&#39;s points coordinates</span>
+
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Draw the function line</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">polygon</span><span class="p">(</span><span class="n">inds</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C2</span><span class="p">)</span> <span class="c1"># Draw the shaded area   </span>
+
+<span class="c1"># Creating a fancy figure</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">),</span> <span class="mi">30</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\int_a^b f(x)\mathrm</span><span class="si">{d}</span><span class="s2">x$&quot;</span><span class="p">,</span>
+        <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">11</span><span class="p">],</span> <span class="n">ylim</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()],</span> 
+             <span class="n">xticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="mi">10</span><span class="p">]),</span> <span class="n">xticklabels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]),</span><span class="n">yticks</span><span class="o">=</span><span class="p">[])</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_spines</span><span class="p">(</span><span class="n">spine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_spines</span><span class="p">(</span><span class="n">spine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="s2">&quot;left&quot;</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ticks</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_integral_function.png" /></p>
+</section>
+</section>
+<section id="image">
+<h2>Image<a class="headerlink" href="#image" title="Link to this heading"></a></h2>
+<p>There is only one method/function to build image for a Graphique that uses <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolor.html">pcolor</a> for one dimensional image (with one colour)
+and <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow">imshow</a> for 3-dimensional images (coloured images)</p>
+<section id="a-one-dimensional-image">
+<h3>A one dimensional image<a class="headerlink" href="#a-one-dimensional-image" title="Link to this heading"></a></h3>
+<p>Let’s create a simple one-dimensional image :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span><span class="n">xx</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="n">yy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span>
+<span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_1.png" /></p>
+<p>This is the most basic image you can get, but it’s possible to adapt the image to your needs.</p>
+<section id="the-colormap">
+<h4>The colormap<a class="headerlink" href="#the-colormap" title="Link to this heading"></a></h4>
+<p>The colormap is automatically generated as a linear variation between two extremums colors. It’s possible to choose
+different colours than the default one :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span><span class="n">xx</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="n">yy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span>
+<span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color_min</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C1</span><span class="p">,</span> <span class="n">color_max</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C17</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_2.png" /></p>
+<p>But it’s also possible to select one of the colorbar of <a class="reference external" href="https://fr.matplotlib.net/stable/api/matplotlib_configuration_api.html#matplotlib.colormaps">plt.colorbar</a> (see <a class="reference external" href="https://fr.matplotlib.net/stable/tutorials/colors/colormaps.html">here</a> for a full description of thoses colorbars)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span><span class="n">xx</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="n">yy</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span>
+<span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;inferno&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_3.png" /></p>
+<p>The colorscale is linear by default but can be modified :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span>
+<span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;inferno&quot;</span><span class="p">,</span> <span class="n">colorscale</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_4.png" /></p>
+<p>Finally, it’s possible to use a fully personalised colorbar with arbitrairy scales and number of color setps</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">xx</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">Graphique</span><span class="p">()</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">customized_cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">colors</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">linear_color_interpol</span>
+<span class="n">ation</span><span class="p">(</span><span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">col_min</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C1</span><span class="p">,</span> <span class="n">col_max</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C17</span><span class="p">))</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">colorbar_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_5.png" /></p>
+<p>or with more colour-steps :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">xx</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">Graphique</span><span class="p">()</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">customized_cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">colors</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">linear_color_interpol</span>
+<span class="n">ation</span><span class="p">(</span><span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">col_min</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C1</span><span class="p">,</span> <span class="n">col_max</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C17</span><span class="p">))</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">colorbar_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;graph_image&quot;</span><span class="p">)</span> <span class="c1"># The Graphique is saved for a latter used</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_6.png" /></p>
+<p>We have used the <code class="docutils literal notranslate"><span class="pre">customized_cmap</span></code> method that generate a custom colorbar for the Graphique that need a list of values and associated colours. To get thoses colours we use the <code class="docutils literal notranslate"><span class="pre">linear_color_interpolation</span></code> function that generate a list of colours for a given list that are linearly interpolated in the 3D colorspace  between the <code class="docutils literal notranslate"><span class="pre">col_min</span></code> and <code class="docutils literal notranslate"><span class="pre">col_max</span></code> color.
+(<code class="docutils literal notranslate"><span class="pre">col_min</span></code> and <code class="docutils literal notranslate"><span class="pre">col_max</span></code> will be associated respectively with the minimum and maximum values of the <code class="docutils literal notranslate"><span class="pre">val</span></code> table)</p>
+</section>
+<section id="saturation">
+<h4>Saturation<a class="headerlink" href="#saturation" title="Link to this heading"></a></h4>
+<p>If the range of values in the image is too large to be perfectly represented by a colorscale, it’s possible to saturate
+the image by setting the <code class="docutils literal notranslate"><span class="pre">vmin</span></code> and <code class="docutils literal notranslate"><span class="pre">vmax</span></code> parameters. Any value below <code class="docutils literal notranslate"><span class="pre">vmin</span></code> in the image will be represented equal to <code class="docutils literal notranslate"><span class="pre">vmin</span></code> and any value above <code class="docutils literal notranslate"><span class="pre">vmax</span></code> will be set equal to <code class="docutils literal notranslate"><span class="pre">vmax</span></code> in the image :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">val</span><span class="o">=</span> <span class="n">xx</span> <span class="o">*</span> <span class="n">yy</span>
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;inferno&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_colorbar</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span> <span class="c1"># adding top and bottom arrow to the colorbar to indicate that the iomage is satureted</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_7.png" /></p>
+</section>
+</section>
+<section id="colored-image">
+<h3>Colored image<a class="headerlink" href="#colored-image" title="Link to this heading"></a></h3>
+<p>It’s also possible to plot a colored image. To do so we will need the <a class="reference external" href="https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.open"><code class="docutils literal notranslate"><span class="pre">Image</span></code></a> module of the <a class="reference external" href="https://pillow.readthedocs.io/en/stable/index.html"><code class="docutils literal notranslate"><span class="pre">PIL</span></code></a> librairy :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+</pre></div>
+</div>
+<p>Let’s open and show the <code class="docutils literal notranslate"><span class="pre">eso1912j.jpg</span></code> image, an image of the 2019 total eclipse at the European Southern Observatory (ESO)’s La Silla Observatory in Chili that can be downlowad <a class="reference external" href="https://www.eso.org/public/images/eso1912j/">here</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;eso1912j.jpg&quot;</span><span class="p">))</span>
+<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Creating the Graphique with the image</span>
+<span class="c1"># Remouving the axis borders and ticks</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_spines</span><span class="p">(</span><span class="n">spine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="s2">&quot;left&quot;</span><span class="p">],</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="p">[],</span> <span class="n">yticks</span><span class="o">=</span><span class="p">[])</span>
+
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_image_8.png" /></p>
+</section>
+</section>
+<section id="contours">
+<h2>Contours<a class="headerlink" href="#contours" title="Link to this heading"></a></h2>
+<p>It’s possible to draw contours in a Graphique, the method/function is based on <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.contour.html#matplotlib.axes.Axes.contour">plt.Axes.contour</a></p>
+<section id="levels-of-an-image">
+<h3>Levels of an image<a class="headerlink" href="#levels-of-an-image" title="Link to this heading"></a></h3>
+<p>If there is already an image into the Graphique, the image data can be used to draw levels lines</p>
+</section>
+</section>
 <section id="configure-the-plots">
 <h2>Configure the plots<a class="headerlink" href="#configure-the-plots" title="Link to this heading"></a></h2>
 <p>It’s possible to configurate the plot via the <code class="docutils literal notranslate"><span class="pre">config_ax</span></code> method. This method applies to the Graphique axis the method <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set.html">axis.set</a>
@@ -199,9 +471,15 @@ One can set the limits for the x or y-axis via the parameters <code class="docut
 the title, the facecolor.
 One can also configurate the whole Figure with the <code class="docutils literal notranslate"><span class="pre">config_fig</span></code> method
 Let us take our previous Graphique and configure it :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;x axis&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;y axis&quot;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">ylim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">],</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C9</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Some lines&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">.</span><span class="n">config_ax</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;x axis&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;y axis&quot;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="n">ylim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span>
+<span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="p">(</span><span class="mi">180</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span><span class="mi">180</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span><span class="mi">200</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Some lines&quot;</span><span class="p">)</span> <span class="c1"># Putting names on axis, set limit on y and y axis, </span>
+<span class="c1"># setting a grey trensparent background</span>
 <span class="n">gr</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Adding a grid to the plot</span>
-<span class="n">gr</span><span class="o">.</span><span class="n">config_fig</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C7</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;colorbar label&quot;</span><span class="p">)</span> <span class="c1"># Setting a name on the colorbar axis</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_spines</span><span class="p">(</span><span class="n">spine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">],</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Remouving the top and right limit of the plot</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_spines</span><span class="p">(</span><span class="n">spine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="s2">&quot;left&quot;</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># Setting the lineweight of the remaing borders of the figure to 2</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_ticks</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span> <span class="c1"># Setting the ticks width and length</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_fig</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">Ctrensp</span><span class="p">)</span> <span class="c1"># Setting a trensparent background for the rest of the figure</span>
 <span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -243,13 +521,78 @@ One can also build a Graphique with dedicated derived methods/functions <code cl
 <section id="polar-plots">
 <h3>Polar plots<a class="headerlink" href="#polar-plots" title="Link to this heading"></a></h3>
 <p>This is also possible to project the Graphique in polar coordinate :</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">polar</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="n">theta</span><span class="o">+</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phi</span><span class="p">])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">gr</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">polar</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="p">[</span><span class="n">theta</span> <span class="o">+</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phi</span><span class="p">])</span>
 </pre></div>
 </div>
 <p><img alt="result" src="_images/plot_polar.png" /></p>
+</section>
+<section id="setting-the-plot-sequence">
+<h3>Setting the plot sequence<a class="headerlink" href="#setting-the-plot-sequence" title="Link to this heading"></a></h3>
+<p>By default, the plot order for lines is determined by the order of there add to the Graphique.
+Each line is associated with its number in the line’s lists inside the Graphique. Its possible to change this default order
+to put lines in the for or background, for example. It’s also possible to hide some of them by remouving their number from the plot sequence.
+It’s even possible to add hide line in a Graphique,
+it can be useful if there is too much data to represent in a single plot. The user can reset later the plot order to show thoses lines.</p>
+<p>For exemple let’s plot the model curve of the Graphique  <code class="docutils literal notranslate"><span class="pre">Errorplot1</span></code> in the foreground
+(they are saved in the background) :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grb</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">Graphique</span><span class="p">(</span><span class="s2">&quot;Errorplot1&quot;</span><span class="p">)</span>
+<span class="n">grb</span><span class="o">.</span><span class="n">set_indexs_plot_lines</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">grb</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/Config_plot_order.png" /></p>
+<p>Since we have built this Graphique just before, we have known the lines orders: the two firsts where the model and two last the errorlines.
+Sometimes it could be more difficult to access to this order. If there are few lines, its possible to plot each one one by one to determine the order.
+The number of lines can be found using <code class="docutils literal notranslate"><span class="pre">len(grb.lines_x)</span></code>.
+It’s possible to access to the values of lines themselves:
+— The abscissa are in <code class="docutils literal notranslate"><span class="pre">Graphique.lines_x</span></code> each element of this list is a list of abscissa of a line
+- The ordinates are in <code class="docutils literal notranslate"><span class="pre">Graphique.lines_y</span></code>
+- The error in x and y-axis (if there are) are in <code class="docutils literal notranslate"><span class="pre">Graphique.err_x</span></code> and<code class="docutils literal notranslate"><span class="pre">Graphique.err_y</span></code>. An empty list stands for the lines without errors.
+- The parameter dictionary for each line are in <code class="docutils literal notranslate"><span class="pre">Graphique.param_lines</span></code>. It can be useful if there are labels associated with each line.</p>
+<p>Each other elements have a parameter <code class="docutils literal notranslate"><span class="pre">hide</span></code> in their configuration dictionary than can be set <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.
+These configuration dictionaries can be updated with dedicated methods such as <code class="docutils literal notranslate"><span class="pre">config_colorbars</span></code> or <code class="docutils literal notranslate"><span class="pre">config_image</span></code>.</p>
+</section>
+<section id="customization-of-graphique-s-elements">
+<h3>Customization of Graphique’s elements<a class="headerlink" href="#customization-of-graphique-s-elements" title="Link to this heading"></a></h3>
+<p>It’s possible to modifie the properties of some Graphique’s elements after they were created via the <code class="docutils literal notranslate"><span class="pre">config_*</span></code> methods.
+The <code class="docutils literal notranslate"><span class="pre">config_ax</span></code> and <code class="docutils literal notranslate"><span class="pre">config_fig</span></code> method has already been presanted.
+There is <code class="docutils literal notranslate"><span class="pre">config_line</span></code> method that can be used to change the line’s properties.</p>
+<p>Let’s load the <code class="docutils literal notranslate"><span class="pre">Multiples_lines1</span></code> Graphique :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grm</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">Graphique</span><span class="p">(</span><span class="s2">&quot;Multiples_lines1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Its possible, for example, to modifie the properties of all lines at once :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grm</span><span class="o">.</span><span class="n">config_line</span><span class="p">(</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># Setting a lineweight of 2 for each lines</span>
+<span class="n">grm</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>But also to modifie the properties of a single line :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grm</span><span class="o">.</span><span class="n">config_line</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">C5</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;First line&quot;</span><span class="p">)</span>
+<span class="n">grm</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_config_lines.png" /></p>
+</section>
+<section id="setting-the-global-font-properties">
+<h3>Setting the global font properties<a class="headerlink" href="#setting-the-global-font-properties" title="Link to this heading"></a></h3>
+<p>It is possible to simply set the font properties for the whole Graphique with the <code class="docutils literal notranslate"><span class="pre">config_font</span></code> method.
+It’s possible to modifie:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">styles</span></code> with <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">italic</span></code> and <code class="docutils literal notranslate"><span class="pre">oblique</span></code> keys.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">size</span></code> with its numerical value</p></li>
+<li><p>The<code class="docutils literal notranslate"><span class="pre">variants</span></code> with <code class="docutils literal notranslate"><span class="pre">normal</span></code> and <code class="docutils literal notranslate"><span class="pre">small-caps</span></code></p></li>
+<li><p>And finally the <code class="docutils literal notranslate"><span class="pre">weight</span></code> that can be <code class="docutils literal notranslate"><span class="pre">light</span></code>, <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">medium</span></code>, <code class="docutils literal notranslate"><span class="pre">semibold</span></code>, <code class="docutils literal notranslate"><span class="pre">bold</span></code>, <code class="docutils literal notranslate"><span class="pre">heavy</span></code> or <code class="docutils literal notranslate"><span class="pre">black</span></code></p></li>
+</ul>
+<p>For exemple let’s modify the font of the Graphique <code class="docutils literal notranslate"><span class="pre">Errorplot1</span></code> :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">Graphique</span><span class="p">(</span><span class="s2">&quot;plot_errorplot_2&quot;</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">config_font</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">gr</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="result" src="_images/plot_config_font.png" /></p>
 </section>
 </section>
 <section id="saving-the-graphique">
@@ -271,7 +614,7 @@ One can also build a Graphique with dedicated derived methods/functions <code cl
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="phenigraph.html" class="btn btn-neutral float-right" title="PheniGraph package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="colors.html" class="btn btn-neutral float-right" title="Colors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

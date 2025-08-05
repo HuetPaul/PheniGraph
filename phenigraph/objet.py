@@ -43,7 +43,7 @@ C17: str = '#a8173b'  #: Rouge cerise / Red
 C18: str = '#1812c4'  #: Bleu foncé / Dark blue
 C19: str = "#000000"  #: Noir / Black
 C20: str = "#707070"  #: Gris / Grey
-Ctrensp: tuple = (0, 0, 0, 0)  #: completely trensparent color (to use for hiding curves for exemple)
+Ctrensp: tuple = (0, 0, 0, 0)  #: completely transparent color (to use for hiding curves for exemple)
 l_colors: list[str] = [C1, C2, C4, C3, C5, C6, C7, C8, C9,
                        C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20]
 
@@ -87,6 +87,9 @@ def linear_color_interpolation(val: np.float64 | float | list[np.float64 | float
         val_min = np.min(val)
     if val_max == np.inf:
         val_max = np.max(val)
+
+    if val_min == val_max:
+        raise UserWarning('Graphique.linear_color_interpolation: val_min == val_max, its impossible to build an interpolation wetween two differents colors')
 
     if (isinstance(val, np.float64) or isinstance(val, float)
             or isinstance(val, np.int64) or isinstance(val, int)):
@@ -557,8 +560,8 @@ def ndarray_dict_to_dict(dic: dict) -> dict:
                 else:
                     raise UserWarning("dict_list : the type ", type_i, "cannot be loaded")
             else:
-                print("Warning : ", k," is not in the list of types")
-                i+=1
+                print("Warning : ", k, " is not in the list of types")
+                i += 1
     return res
 
 
@@ -704,7 +707,7 @@ To display several Graphique in one, use a Multigraph
 
     """
 
-    def __init__(self, filename: str = "", directory: str = ""):
+    def __init__(self, filename: str = "", directory: str = "", set_phenigraph_style: bool = True):
         if '.npz' in filename:
             filename = filename[:-4]
         self.filename: str = filename
@@ -732,6 +735,14 @@ To display several Graphique in one, use a Multigraph
         self.param_ax_tl: dict = dict()
         self.param_ax_br: dict = dict()
         self.param_ax_tr: dict = dict()
+        self.ticks_param_ax: list[dict] = [dict(), dict()] # x axis, y axis
+        self.ticks_param_ax_tl: list[dict] = [dict(), dict()] # x axis, y axis
+        self.ticks_param_ax_br: list[dict] = [dict(), dict()] # x axis, y axis
+        self.ticks_param_ax_tr: list[dict] = [dict(), dict()]# x axis, y axis
+        self.param_spines_ax: dict = [dict(), dict(), dict(), dict()] # bottom, left, top, right
+        self.param_spines_ax_tl: dict = [dict(), dict(), dict(), dict()]
+        self.param_spines_ax_br: dict = [dict(), dict(), dict(), dict()]
+        self.param_spines_ax_tr: dict = [dict(), dict(), dict(), dict()]
         self.colorbar: list[Colorbar] = []
         self.cmap: list = []
         self.norms: list = []
@@ -836,6 +847,8 @@ To display several Graphique in one, use a Multigraph
             values_to_load: dict = ndarray_dict_to_dict(dict(values_files))
             values_files.close()
             self.load_dict(values_to_load)
+        elif set_phenigraph_style:
+            self.set_style_phenigraph()
 
     def load_dict(self, values_to_load: dict) -> None:
         """
@@ -891,6 +904,22 @@ To display several Graphique in one, use a Multigraph
             self.param_ax_br = values_to_load["param_ax_br"]
         if "param_ax_tr" in values_to_load.keys():
             self.param_ax_tr = values_to_load["param_ax_tr"]
+        if "ticks_param_ax" in values_to_load.keys():
+            self.ticks_param_ax = values_to_load["ticks_param_ax"]
+        if "ticks_param_ax_tl" in values_to_load.keys():
+            self.ticks_param_ax_tl = values_to_load["ticks_param_ax_tl"]
+        if "ticks_param_ax_br" in values_to_load.keys():
+            self.ticks_param_ax_br = values_to_load["ticks_param_ax_br"]
+        if "ticks_param_ax_tr" in values_to_load.keys():
+            self.ticks_param_ax_tr = values_to_load["ticks_param_ax_tr"]
+        if "param_spines_ax" in values_to_load.keys():
+            self.param_spines_ax = values_to_load["param_spines_ax"]
+        if "param_spines__ax_tl" in values_to_load.keys():
+            self.param_spines_ax_tl = values_to_load["param__spines_ax_tl"]
+        if "param_spines__ax_br" in values_to_load.keys():
+            self.param_spines_ax_br = values_to_load["param__spines_ax_br"]
+        if "param_spines_ax_tr" in values_to_load.keys():
+            self.param_spines_ax_tr = values_to_load["param_spines_ax_tr"]
         # self.colorbar = None
         if "param_fig" in values_to_load.keys():
             self.param_fig = values_to_load["param_fig"]
@@ -899,7 +928,7 @@ To display several Graphique in one, use a Multigraph
         if "x_axe" in values_to_load.keys():
             if isinstance(values_to_load["x_axe"][0], int | float | np.float64 | np.int64):
                 self.x_axe = [np.array(values_to_load["x_axe"]), np.array([-np.inf]),
-                                       np.array([-np.inf]), np.array([-np.inf])]
+                              np.array([-np.inf]), np.array([-np.inf])]
             else:
                 self.x_axe = values_to_load["x_axe"]
         if "labels_x_ticks" in values_to_load.keys():
@@ -912,10 +941,10 @@ To display several Graphique in one, use a Multigraph
             else:
                 self.labels_x_ticks = values_to_load["labels_x_ticks"]
         if "y_axe" in values_to_load.keys():
-           if isinstance(values_to_load["y_axe"][0], int | float | np.float64 | np.int64):
+            if isinstance(values_to_load["y_axe"][0], int | float | np.float64 | np.int64):
                 self.y_axe = np.array([values_to_load["y_axe"], np.array([-np.inf]),
                                        np.array([-np.inf]), np.array([-np.inf])])
-           else:
+            else:
                 self.y_axe = values_to_load["y_axe"]
 
         if "labels_y_ticks" in values_to_load.keys():
@@ -1024,18 +1053,34 @@ To display several Graphique in one, use a Multigraph
             enrg["param_ax_br"] = self.param_ax_br
         if len(self.param_ax_tr) > 0:
             enrg["param_ax_tr"] = self.param_ax_tr
+        if len(self.ticks_param_ax[0]) > 0 or  len(self.ticks_param_ax[1]) > 0:
+            enrg["ticks_param_ax"] = self.ticks_param_ax
+        if len(self.ticks_param_ax_tl[0]) > 0 or len(self.ticks_param_ax_tl[1]) > 0:
+            enrg["ticks_param_ax_tl"] = self.ticks_param_ax_tl
+        if len(self.ticks_param_ax_br[0]) > 0 or len(self.ticks_param_ax_br[1]) > 0:
+            enrg["ticks_param_ax_br"] = self.ticks_param_ax_br
+        if len(self.ticks_param_ax_tr[0]) > 0 or len(self.ticks_param_ax_tr[1]) > 0:
+            enrg["ticks_param_ax_tr"] = self.ticks_param_ax_tr
+        if np.any(np.array([len(d) > 0 for d in self.param_spines_ax])):
+            enrg["param_spines_ax"] = self.param_spines_ax
+        if np.any(np.array([len(d) > 0 for d in self.param_spines_ax_tl])):
+            enrg["param_spines_ax_tl"] = self.param_spines_ax_tl
+        if np.any(np.array([len(d) > 0 for d in self.param_spines_ax_br])):
+            enrg["param_spines_ax_br"] = self.param_spines_ax_br
+        if np.any(np.array([len(d) > 0 for d in self.param_spines_ax])):
+            enrg["param_spines_ax_tr"] = self.param_spines_ax_tr
         if len(self.param_fig) > 0:
             enrg["param_fig"] = self.param_fig
         if len(self.param_enrg_fig) > 0:
             enrg["param_enrg_fig"] = self.param_enrg_fig
-        if len(self.x_axe) == 0 or np.any([np.any(x_axe > -np.inf) for x_axe in self.x_axe]):
+        if len(self.x_axe) == 0 or np.any([np.any(x_axe > -np.inf) or len(x_axe) == 0 for x_axe in self.x_axe]):
             enrg["x_axe"] = self.x_axe
-        if len(self.labels_x_ticks) == 0 or np.any([np.any(labels_x_ticks != "empty") 
+        if len(self.labels_x_ticks) == 0 or np.any([np.any(labels_x_ticks != "empty")
                                                     for labels_x_ticks in self.labels_x_ticks]):
             enrg["labels_x_ticks"] = self.labels_x_ticks
-        if len(self.y_axe) == 0 or np.any([np.any(y_axe > -np.inf) for y_axe in self.y_axe]):
+        if len(self.y_axe) == 0 or np.any([np.any(y_axe > -np.inf) or len(y_axe) == 0 for y_axe in self.y_axe]):
             enrg["y_axe"] = self.y_axe
-        if len(self.labels_y_ticks) == 0 or  np.any([np.any(labels_y_ticks != "empty") 
+        if len(self.labels_y_ticks) == 0 or np.any([np.any(labels_y_ticks != "empty")
                                                     for labels_y_ticks in self.labels_y_ticks]):
             enrg["labels_y_ticks"] = self.labels_y_ticks
         if len(self.lines_x) > 0:
@@ -1139,6 +1184,7 @@ To display several Graphique in one, use a Multigraph
     def customized_cmap(self, values: list[np.float64] | np.ndarray | tuple,
                         colors: list | np.ndarray | tuple | None = None,
                         ticks: list | np.ndarray[np.float64] | None = None,
+                        ticks_labels: list | np.ndarray[str] | None = None,
                         **kwargs) -> None:
         """
 
@@ -1152,6 +1198,8 @@ To display several Graphique in one, use a Multigraph
             The associated colors, if None, a linear variation beteween C1 and C2 is bild
         ticks : list | np.ndarray[np.float64], optional
             Array of ticks for the colorbar If None, ticks are determined automatically from the input.
+        ticks_labels : list | np.ndarray[str], optional
+            Array of labels for the ticks.
         kwargs
             Additional arguments for the colorbar :
                 - location: str, {'right', 'top', 'bottom', 'left'}
@@ -1178,7 +1226,7 @@ To display several Graphique in one, use a Multigraph
         --------
         >>> x = np.linspace(0, 10, 1000)
         >>> alpha = np.linspace(1, 5, 10)
-        >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=C1, col_max=C2)
         >>> gr = Graphique()
         >>> gr.logy(x, [x**a for a in alpha], color=colors)
         >>> gr.customized_cmap(alpha, colors)
@@ -1187,6 +1235,8 @@ To display several Graphique in one, use a Multigraph
         """
         if len(values) < 2:
             raise UserWarning("Graphique.custumized_cmap : the len of values need to be higer than 2")
+        if ticks_labels is not None:
+            kwargs["ticks_labels"] = ticks_labels
         if isinstance(values, tuple) or len(values) == 2:
             values = np.linspace(values[0], values[1], 255)
             if colors is not None and (isinstance(colors, tuple) or len(colors) == 2):
@@ -1218,7 +1268,7 @@ To display several Graphique in one, use a Multigraph
              z: np.ndarray | list | None = None,
              marker: str | list | np.ndarray[str] = "", share_colorbar: bool | int = False,
              scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-             hide: bool = False,
+             hide: bool = False, cmap: str = "default", color_min: str | tuple = None, color_max: str | tuple = None,
              axis_config: str = "bl", **kwargs) -> None:
         """
 
@@ -1243,6 +1293,13 @@ To display several Graphique in one, use a Multigraph
         hide : bool, optional, default=False
             If True then the new line(s) is/are not plotted with the Graphique.
             To plot them, then change the plot order with self.set_indexs_plot_lines
+        cmap : str, optional, default='default'
+            The colormap style if needed, the default colorbar is a linear variation between color_min and color_max
+            If there are not provided, the color will be chosen automatically
+        color_min : str | tuple, optional
+            The color associated with the minimum value for a `default` cmap
+        color_max : str | tuple, optional
+            The color associated with the maximum value for a `default` cmap
         kwargs_colorbar, optional
             Extra arguments for the colorbar (if z is not None)
         axis_config : str, optional, {"bl", "tl", "br", "tr"}, default="bl"
@@ -1293,7 +1350,7 @@ To display several Graphique in one, use a Multigraph
         --------
         >>> x = np.linspace(0, 10, 1000)
         >>> alpha = np.linspace(1, 5, 10)
-        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=C1, col_max=C2)
         >>> gr = g.Graphique()
         >>> gr.line(x, [x*a for a in alpha], color=colors)
         >>> gr.customized_cmap(alpha, colors)
@@ -1322,8 +1379,114 @@ To display several Graphique in one, use a Multigraph
             marker = z
             z = None
         if y is None:
-            y = np.copy(x)
+            if isinstance(x, list) and isinstance(x[0], np.ndarray):
+                y = [np.copy(X) for X in x]
+            else:
+                y = np.copy(x)
             x = np.arange(0, len(y))
+
+        # if the parameters are array, trying to find the corrects axis order if needed.
+        # if isinstance(x, np.ndarray) and isinstance(y, np.ndarray) and (z is None or isinstance(z, np.ndarray)):
+        #     if len(x.shape) > 3:
+        #         raise UserWarning("The x dimension cannot be higher than 3 : x.shape=", x.shape)
+        #     if len(y.shape) > 3:
+        #         raise UserWarning("The y dimension cannot be higher than 3 : x.shape=", y.shape)
+        #     if z is not None and len(z.shape) > 3:
+        #         raise UserWarning("The z dimension cannot be higher than 3 : x.shape=", z.shape)
+        #
+        #     if x.shape[-1] != y.shape[-1]:
+        #         if z is not None and ((len(x.shape) == len(z.shape) and x.shape != z.shape)
+        #                               or(len(y.shape) == len(z.shape) and y.shape != z.shape)):
+        #             raise UserWarning("Graphique.line : the shape of z is not compatible with shape of x or y"
+        #                               " : x.shape=", x.shape, "y.shape=", y.shape, "z.shape=", z.shape)
+        #         if len(x.shape) == 1 and not np.any(np.array(y.shape) == x.shape[0]):
+        #             raise UserWarning("Graphique.line : x and y shape doesn't match : x.shape=", x.shape,
+        #                               "y.shape=", y.shape)
+        #         elif len(x.shape) == 1:
+        #             i = np.argwhere(np.array(y.shape) == x.shape[0])[:, 0]
+        #             if len(i) > 1:
+        #                 raise UserWarning("Graphique.line : unable to determine the dimension along which plot the data")
+        #             else:
+        #                 i = i[0]
+        #             if z is not None and len(z.shape) == len(y.shape):
+        #                 np.moveaxis(z, i, -1)
+        #             elif z is not None and len(z.shape) == 2 and len(y.shape) == 3:
+        #                 j = np.argwhere(np.array(z.shape) == x.shape[0])[:, 0]
+        #                 if len(j) > 1:
+        #                     raise UserWarning(
+        #                         "Graphique.line : unable to determine the dimension along which plot the data for z axis")
+        #                 else:
+        #                     j = j[0]
+        #                 np.moveaxis(z, j, -1)
+        #             if isinstance(marker, np.ndarray) and marker.shape == y.shape:
+        #                 np.moveaxis(marker, i, -1)
+        #             elif isinstance(marker, np.ndarray) and len(marker.shape) == 2 and len(y.shape) == 3:
+        #                 j = np.argwhere(np.array(marker.shape) == x.shape[0])[:, 0]
+        #                 if len(j) > 1:
+        #                     raise UserWarning(
+        #                         "Graphique.line : unable to determine the dimension along which plot the data for markers")
+        #                 else:
+        #                     j = j[0]
+        #                 np.moveaxis(marker, j, -1)
+        #             for k in kwargs.keys():
+        #                 if isinstance(kwargs[k], np.ndarray) and kwargs[k].shape == y.shape:
+        #                     np.moveaxis(kwargs[k], i, -1)
+        #                 elif isinstance(kwargs[k], np.ndarray) and len(kwargs[k].shape) == 2 and len(y.shape) == 3:
+        #                     j = np.argwhere(np.array(kwargs[k].shape) == x.shape[0])[:, 0]
+        #                     if len(j) > 1:
+        #                         raise UserWarning(
+        #                             "Graphique.line : unable to determine the dimension along which plot the "
+        #                             "data for one of the argument : ", k, kwargs[k].shape)
+        #                     else:
+        #                         j = j[0]
+        #                     np.moveaxis(kwargs[k], j, -1)
+        #             np.moveaxis(x, i, -1)
+        #             np.moveaxis(y, i, -1)
+        #         elif len(x.shape) == 2:
+        #             i = np.argwhere((np.array(y.shape) != x.shape[0]) + (np.array(y.shape) != x.shape[1]))[:, 0]
+        #             if len(i) > 1:
+        #                 raise UserWarning("Graphique.line : unable to determine the dimension along wich plot the data")
+        #             else:
+        #                 i = i[0]
+        #             if z is not None and z.shape == x.shape:
+        #                 np.moveaxis(z, i, 0)
+        #
+        #             if isinstance(marker, np.ndarray) and marker.shape == y.shape:
+        #                 np.moveaxis(marker, i, 0)
+        #             for k in kwargs.keys():
+        #                 if isinstance(kwargs[k], np.ndarray) and kwargs[k].shape == y.shape:
+        #                     np.moveaxis(kwargs[k], i, 0)
+        #             np.moveaxis(x, i, 0)
+        #             np.moveaxis(y, i, 0)
+        #         else: # len(x.shape) == 3
+        #             if not np.any(np.array(x.shape) == np.array(y.shape)):
+        #                 raise UserWarning("Graphique.line : the shape of x and y are not compatible : x.shape=",
+        #                                   x.shape, "y.shape=", y.shape)
+        #             i = np.argwhere(np.array(x.shape) == np.array(y.shape))[:, 0]
+        #             if len(i) > 1:
+        #                 raise UserWarning("Graphique.line : impossible to determine the axis along wich plot the data "
+        #                                   ": x.shape=", x.shape, "y.shape=", y.shape)
+        #             else:
+        #                 i = i[0]
+        #             np.moveaxis(x, i, -1)
+        #             np.moveaxis(y, i, -1)
+        #             for k in kwargs.keys():
+        #                 if isinstance(kwargs[k], np.ndarray) and kwargs[k].shape == y.shape:
+        #                     np.moveaxis(kwargs[k], i, -1)
+        #     if len(y.shape) == 3:
+        #         for i in range(len(y)):
+        #             if isinstance(marker, np.ndarray) and marker.shape == y.shape:
+        #                 mrk = marker[i]
+        #             else:
+        #                 mrk = marker
+        #             kwargs_i = kwargs.copy()
+        #             for k in kwargs_i.keys():
+        #                 if isinstance(kwargs_i[k], np.ndarray) and kwargs_i[k].shape == y.shape:
+        #                     kwargs_i[k] = kwargs_i[k][i]
+        #             if len(x.shape) == 3 and (z is None or len(z.shape) < 3):
+        #                 self.line(x=x[i], y=y[i], z=z, marker=mrk, share_colorbar=share_colorbar, scale_z=scale_z,
+        #                           kwargs_colorbar=kwargs_colorbar, hide=hide, axis_config=axis_config, **kwargs_i)
+
         if isinstance(x[0], list) | isinstance(x[0], np.ndarray):
             if isinstance(x[0][0], list) | isinstance(x[0][0], np.ndarray):
                 raise UserWarning("Graphique.line the x-axis dimension cannot be superior than 2")
@@ -1390,47 +1553,61 @@ To display several Graphique in one, use a Multigraph
                               len(x), len(z))
         if dim_z < 2 and isinstance(share_colorbar, bool) and share_colorbar:
             if self.custum_colorbar_values is None:
-                raise UserWarning("Graphique.line : There is no previous colormap to use to plot the z axis, please set "
-                                  "the parameter share_colorbar to False")
+                raise UserWarning(
+                    "Graphique.line : There is no previous colormap to use to plot the z axis, please set "
+                    "the parameter share_colorbar to False")
             share_colorbar = len(self.param_colorbar) - 1
-            print('Graphique.line : Warning, no colorbar is provide to plot the z axis, the ', share_colorbar, "is used by default")
+            print('Graphique.line : Warning, no colorbar is provide to plot the z axis, the ', share_colorbar,
+                  "is used by default")
         if dim_x == 2 and dim_y == 2 and dim_z == 2:
             if scale_z == "linear" or scale_z == "symlog":
                 if isinstance(share_colorbar, bool):
-                    z_min: np.float64 = np.min(z)
-                    z_max: np.float64 = np.max(z)
+                    z_min: np.float64 = np.min([np.min(Z) for Z in z])
+                    z_max: np.float64 = np.max([np.max(Z) for Z in z])
                 else:
                     z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                     z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
             else:
                 if isinstance(share_colorbar, bool):
-                    if np.any(z > 0):
-                        z_min: np.float64 = np.min(z[z > 0])
-                        z_max: np.float64 = np.max(z)
+                    if np.any(np.array([Z > 0 for Z in z])):
+                        z_min: np.float64 = np.inf
+                        z_max: np.float64 = -np.inf
+                        for Z in z:
+                            if np.any(Z > 0):
+                                z_min = min(z_min, np.min(Z[Z>0]))
+                                z_min = max(z_max, np.max(Z[Z>0]))
                     else:
                         raise UserWarning(
                             "Graphique.line : z-axis has no strictly positive values and the scale is log)")
                 else:
                     z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                     z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
-            if scale_z == "symlog" and (z > 0).sum() > 0:
+            if scale_z == "symlog" and np.any(np.array([Z > 0 for Z in z])):
                 if isinstance(share_colorbar, bool):
-                    z_min_pos: np.float64 = np.min(z[z > 0])
+                        z_min_pos: np.float64 = np.inf
+                        for Z in z:
+                            if np.any(Z > 0):
+                                z_min_pos = min(z_min_pos, np.min(Z[Z>0]))
                 else:
-                    z_min_pos: np.float64 = self.custum_colorbar_values[
-                        np.argwhere(self.custum_colorbar_values > 0)[0, 0]]
+                    z_min_pos: np.float64 = self.custum_colorbar_values[np.argwhere(self.custum_colorbar_values > 0)[0, 0]]
 
             else:
-                z_min_pos: np.float64 = 0.
+                z_min_pos: np.float64 = max(0., z_min)
 
-            if scale_z == "symlog" and z is not None and (z < 0).sum() > 0:
+            if scale_z == "symlog" and z is not None and np.any(np.array([Z < 0 for Z in z])):
                 if isinstance(share_colorbar, bool):
-                    z_max_neg: np.float64 = np.max(z[z < 0])
+                    z_max_neg: np.float64 = -np.inf
+                    for Z in z:
+                        if np.any(Z < 0):
+                            z_max_neg = max(z_max_neg, np.max(Z[Z < 0]))
                 else:
                     z_min_neg: np.float64 = self.custum_colorbar_values[
                         np.argwhere(self.custum_colorbar_values < 0)[-1, 0]]
             else:
-                z_max_neg: np.float64 = 0.
+                z_max_neg: np.float64 = min(0., z_max)
+
+            if isinstance(share_colorbar, bool) and (color_min is not None or color_max is not None):
+                share_colorbar = True
 
             for (X, Y, Z, i) in zip(x, y, z, np.arange(len(x))):
                 if isinstance(share_colorbar, bool):
@@ -1486,38 +1663,90 @@ To display several Graphique in one, use a Multigraph
                         args_auxi["marker"] = marker
                 if scale_z == "linear":
                     if isinstance(share_colorbar, bool) and share_colorbar:
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        else:
+                            c_min = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        else:
+                            c_max = color_max
                     elif isinstance(share_colorbar, bool):
                         c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
+
                     if isinstance(share_colorbar, bool):
-                        args_auxi["color"] = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
+                        if cmap == "default":
+                            colors: np.ndarray[str] = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
                                                                         col_min=c_min,
                                                                         col_max=c_max)
+
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                                cmap_auxi(cmap_auxi(np.minimum(
+                                                                    np.maximum((Z- z_min)/ (z_max - z_min),
+                                                                               0.), 1.)))])
+                        args_auxi["color"] = colors
                     else:
-                        args_auxi["color"] = linear_color_interpolation(Z, val_min=self.custum_colorbar_values[share_colorbar].min(),
-                                                                        val_max=self.custum_colorbar_values[share_colorbar].max(),
-                                                                        col_min=self.custum_colorbar_colors[share_colorbar][0],
-                                                                        col_max=self.custum_colorbar_colors[share_colorbar][-1])
+                        args_auxi["color"] = linear_color_interpolation(Z, val_min=self.custum_colorbar_values[
+                            share_colorbar].min(),
+                                                                        val_max=self.custum_colorbar_values[
+                                                                            share_colorbar].max(),
+                                                                        col_min=
+                                                                        self.custum_colorbar_colors[share_colorbar][0],
+                                                                        col_max=
+                                                                        self.custum_colorbar_colors[share_colorbar][-1])
 
                     if isinstance(share_colorbar, bool) and not share_colorbar:
+                        if cmap == "default":
+                            colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
+                                                              col_min=c_min, col_max=c_max)
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                                cmap_auxi(np.linspace(0, 1, 255))])
                         self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                             colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                               col_min=c_min, col_max=c_max),
+                                             colors=colors,
                                              scale=scale_z, **kwargs_colorbar)
+
                 elif scale_z == "log" and len(idx_s) > 0:
-                    if  isinstance(share_colorbar, bool) and share_colorbar:
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    if isinstance(share_colorbar, bool) and share_colorbar:
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        else:
+                            c_min = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        else:
+                            c_max = color_max
                     elif isinstance(share_colorbar, bool):
                         c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
                     if isinstance(share_colorbar, bool):
-                        args_auxi["color"] = linear_color_interpolation(np.log10(Z[idx_s]), val_min=np.log10(z_min),
+                        if cmap == "default":
+                            colors: np.ndarray[str] = linear_color_interpolation(np.log10(Z[idx_s]), val_min=np.log10(z_min),
                                                                         val_max=np.log10(z_max),
                                                                         col_min=c_min,
                                                                         col_max=c_max)
+
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                                cmap_auxi(np.minimum(
+                                                                    np.maximum((np.log10(Z[idx_s])
+                                                                                - np.log10(z_min))/ (np.log10(z_max) - np.log10(z_min)),
+                                                                               0.), 1.))])
+                        args_auxi["color"] = colors
                     else:
                         args_auxi["color"] = linear_color_interpolation(np.log10(Z[idx_s]),
                                                                         val_min=self.custum_colorbar_values[
@@ -1530,15 +1759,32 @@ To display several Graphique in one, use a Multigraph
                                                                         self.custum_colorbar_colors[share_colorbar][-1])
 
                     if isinstance(share_colorbar, bool) and not share_colorbar:
+                        if cmap == "default":
+                            colors=linear_color_interpolation(np.linspace(np.log10(z_min), np.log10(z_min), 255),
+                                                              col_min=c_min, col_max=c_max)
+
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                                cmap_auxi(np.linspace(0, 1, 255))])
                         self.customized_cmap(values=np.linspace(np.log10(z_min), np.log10(z_max), 255),
-                                             colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                               col_min=c_min, col_max=c_max),
+                                             colors=colors,
                                              scale=scale_z, **kwargs_colorbar)
+
                 else:
                     if isinstance(share_colorbar, bool) and share_colorbar:
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        else:
+                            c_min = color_min
                         c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 3) % len(l_colors)]
+                        else:
+                            c_max = color_max
                     elif isinstance(share_colorbar, bool):
                         c_min: str = l_colors[(self.compt_color + 1 + 3 * i) % len(l_colors)]
                         c_med: str = l_colors[(self.compt_color + 2 + 3 * i) % len(l_colors)]
@@ -1578,7 +1824,7 @@ To display several Graphique in one, use a Multigraph
                     z_colors: np.ndarray[np.float64] = np.append(z_colors2, z_colors1)
                     colors: np.ndarray[np.float64] = np.append(colors2, colors1)
                     args_auxi["color"] = colors
-                    if  isinstance(share_colorbar, bool) and not share_colorbar:
+                    if isinstance(share_colorbar, bool) and not share_colorbar:
                         self.customized_cmap(values=z_colors,
                                              colors=colors, scale=scale_z, **kwargs_colorbar)
                 if "label" in kwargs and args_auxi["label"] == "":
@@ -1588,21 +1834,57 @@ To display several Graphique in one, use a Multigraph
 
             if isinstance(share_colorbar, bool) and share_colorbar:
                 if scale_z == "linear":
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    if cmap == "default":
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_min = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_max: str = color_max
+                        colors = linear_color_interpolation(np.linspace(z_min, z_max, 255),
+                                                            col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                            cmap_auxi(np.linspace(0, 1, 255))])
+
+
                     self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
+                                         colors=colors,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
+
                 elif scale_z == "log":
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    if cmap == "default":
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_min = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_max: str = color_max
+                        colors = linear_color_interpolation(np.geomspace(z_min, z_max, 255),
+                                                            col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                            cmap_auxi((np.geomspace(z_min, z_max, 255) - z_min) / (z_max - z_min))])
+
                     self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
+                                         colors=colors,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
                 else:
                     c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                     c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
@@ -1639,8 +1921,14 @@ To display several Graphique in one, use a Multigraph
                     if isinstance(share_colorbar, bool):
                         z_min: np.float64 = np.min(z)
                         z_max: np.float64 = np.max(z)
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        else:
+                            c_min: str = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        else:
+                            c_max: str = color_max
                     else:
                         z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                         z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
@@ -1670,7 +1958,8 @@ To display several Graphique in one, use a Multigraph
                 else:
                     z_min: np.float64 = np.double(0.)
                     z_max: np.float64 = np.double(0.)
-                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+                if z is not None and scale_z == "symlog" and (
+                        (z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
                     if isinstance(share_colorbar, bool):
                         z_min_pos: np.float64 = np.min(z[z > 0])
                     else:
@@ -1695,11 +1984,35 @@ To display several Graphique in one, use a Multigraph
                 idx_s = np.array([])
             colors: np.ndarray[str] = []
             if scale_z == "linear" and z is not None:
-                colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
+                if cmap == "default":
+                    colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
                                                     col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                        cmap_auxi(np.minimum(np.maximum((z-z_min) / (z_max - z_min), 0), 1))])
+
             elif scale_z == "log" and z is not None and np.any(z > 0):
-                colors = linear_color_interpolation(np.log10(z[idx_s]), val_min=np.log10(z_min),
+                if cmap == "default":
+                    colors = linear_color_interpolation(np.log10(z[idx_s]), val_min=np.log10(z_min),
                                                     val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors_pos: np.ndarray[str] = np.array([to_hex(col) for col in
+                                                        cmap_auxi(
+                                                            np.minimum(np.maximum((np.log10(z[z > 0]) - np.log10(z_min))
+                                                                                  / (np.log10(z_max) - np.log10(z_min)), 0),
+                                                                       1))])
+                    colors = np.full(len(z), cmap_auxi(0))
+                    colors[z > 0] = colors_pos
+
+
             elif z is not None:
                 colors = np.full(len(z), c_med)
                 ma = z > 0
@@ -1753,12 +2066,25 @@ To display several Graphique in one, use a Multigraph
                         if "color" not in kwargs and len(y) <= 4:
                             args_auxi["color"] = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
                         elif "color" not in kwargs:
-                            args_auxi["color"] = linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
-                                                                            col_min=l_colors[(self.compt_color + 1)
-                                                                                             % len(l_colors)],
-                                                                            col_max=l_colors[(self.compt_color + 2)
-                                                                                             % len(l_colors)])
+                            if cmap == "default":
+                                if color_min is None:
+                                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                                else:
+                                    c_min: str = color_min
+                                if color_max is None:
+                                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                                else:
+                                    c_max: str = color_max
+                                args_auxi["color"] = linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
+                                                                                col_min=c_min,
+                                                                                col_max=c_max)
 
+                            elif cmap not in list(plt.colormaps):
+                                raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                                  "isn't awalible. Please use ", list(plt.colormaps))
+                            else:
+                                cmap_auxi = plt.get_cmap(cmap)
+                                args_auxi["color"] = np.ndarray[str] = cmap_auxi(i / (len(y) - 1))
                     elif len(z) == len(y):
                         args_auxi["color"] = colors[i]
                     else:
@@ -1774,21 +2100,66 @@ To display several Graphique in one, use a Multigraph
                 if "color" not in kwargs and len(y) <= 4:
                     self.compt_color += len(y)
                 elif "color" not in kwargs:
-                    self.compt_color += 2
+                    if color_min is None:
+                        self.compt_color += 1
+                    if color_max is None:
+                        self.compt_color += 1
             elif (isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar)
                   and scale_z == "linear"):
+
+                if cmap == "default":
+                    if color_min is None:
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        self.compt_color += 1
+                    else:
+                        c_min: str = color_min
+                    if color_max is None:
+                        c_max: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        self.compt_color += 1
+                    else:
+                        c_max: str = color_max
+                    colors = linear_color_interpolation(np.linspace(z_min, z_max, 255),
+                                                                    col_min=c_min, col_max=c_max)
+
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi(np.linspace(0., 1., 255))
+
                 self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                     colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                       col_min=c_min, col_max=c_max),
+                                     colors=colors,
                                      scale=scale_z, **kwargs_colorbar)
-                self.compt_color += 2
-            elif isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar)  and scale_z == "log":
+
+            elif isinstance(share_colorbar, bool) and (
+                    isinstance(share_colorbar, bool) and not share_colorbar) and scale_z == "log":
+
+                if cmap == "default":
+                    if color_min is None:
+                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        self.compt_color += 1
+                    else:
+                        c_min: str = color_min
+                    if color_max is None:
+                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        self.compt_color += 1
+                    else:
+                        c_max: str = color_max
+                    args_auxi["color"] = linear_color_interpolation(np.geomspace(z_min, z_max, 255),
+                                                                       col_min=c_min, col_max=c_max)
+
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi(np.minimum(np.maximum((np.geomspace(z_min, z_max, 255) - z_min) / (z_max - z_min), 0.)))
+
                 self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
-                                     colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                       col_min=c_min, col_max=c_max),
+                                     colors=colors,
                                      scale=scale_z, **kwargs_colorbar)
-                self.compt_color += 2
-            elif isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar) :
+            elif isinstance(share_colorbar, bool) and (isinstance(share_colorbar, bool) and not share_colorbar):
                 if z_min_pos > 0.:
                     z_colors1 = np.geomspace(z_min_pos, z_max, 255 // 2)
                     colors1 = linear_color_interpolation(np.linspace(np.log10(z_min_pos), np.log10(z_max),
@@ -1824,7 +2195,8 @@ To display several Graphique in one, use a Multigraph
                         z_min: np.float64 = np.min(z[z > 0])
                         z_max: np.float64 = np.max(z)
                     else:
-                        raise UserWarning("Graphique.line : z-axis has no strictly positive values and the scale is log)")
+                        raise UserWarning(
+                            "Graphique.line : z-axis has no strictly positive values and the scale is log)")
                 else:
                     z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                     z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
@@ -1832,7 +2204,8 @@ To display several Graphique in one, use a Multigraph
                 if isinstance(share_colorbar, bool):
                     z_min_pos: np.float64 = np.min(z[z > 0])
                 else:
-                    z_min_pos: np.float64 = self.custum_colorbar_values[np.argwhere(self.custum_colorbar_values > 0)[0,0]]
+                    z_min_pos: np.float64 = self.custum_colorbar_values[
+                        np.argwhere(self.custum_colorbar_values > 0)[0, 0]]
 
             else:
                 z_min_pos: np.float64 = 0.
@@ -1903,37 +2276,74 @@ To display several Graphique in one, use a Multigraph
                         args_auxi["marker"] = marker
                 if scale_z == "linear":
                     if share_colorbar:
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if cmap == "default":
+                            if color_min is None:
+                                c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            else:
+                                c_min: str = color_min
+                            if color_max is None:
+                                c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            else:
+                                c_max: str = color_max
+                            colors: np.ndarray = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
+                                                                            col_min=c_min,
+                                                                            col_max=c_max)
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = cmap_auxi(
+                                np.minimum(np.maximum((Z - z_min) / (z_max - z_min), 0.), 1.))
+
                     else:
                         c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
-
-                    args_auxi["color"] = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
+                        colors: np.ndarray = linear_color_interpolation(Z, val_min=z_min, val_max=z_max,
                                                                     col_min=c_min,
                                                                     col_max=c_max)
-                    if not share_colorbar:
                         self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
                                              scale=scale_z, **kwargs_colorbar)
+
+                    args_auxi["color"] = colors
+
                 elif scale_z == "log" and len(idx_s) > 0:
                     if share_colorbar:
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if cmap == "default":
+                            if color_min is None:
+                                c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            else:
+                                c_min: str = color_min
+                            if color_max is None:
+                                c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            else:
+                                c_max: str = color_max
+
+                            colors: np.ndarray = linear_color_interpolation(np.log10(np.maximum(Z, np.min(Z[idx_s]), 0.)),
+                                                                                val_min=np.log10(z_min),
+                                                                                val_max=np.log10(z_max),
+                                                                                col_min=c_min, col_max=c_max)
+                        elif cmap not in list(plt.colormaps):
+                            raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                              "isn't awalible. Please use ", list(plt.colormaps))
+                        else:
+                            cmap_auxi = plt.get_cmap(cmap)
+                            colors: np.ndarray[str] = cmap_auxi(np.minimum(np.maximum((np.log10(np.maximum(Z, np.min(Z[idx_s]))) - np.log10(z_min)) / (np.log10(z_max) - np.log10(z_min)), 0.), 1.))
                     else:
                         c_min: str = l_colors[(self.compt_color + 1 + 2 * i) % len(l_colors)]
                         c_max: str = l_colors[(self.compt_color + 2 + 2 * i) % len(l_colors)]
-
-                    args_auxi["color"] = linear_color_interpolation(np.log10(Z[idx_s]), val_min=np.log10(z_min),
-                                                                    val_max=np.log10(z_max),
-                                                                    col_min=c_min,
-                                                                    col_max=c_max)
-                    if not share_colorbar:
+                        colors: np.ndarray = linear_color_interpolation(np.log10(np.maximum(Z, np.min(Z[idx_s]), 0.)),
+                                                                            val_min=np.log10(z_min),
+                                                                            val_max=np.log10(z_max),
+                                                                            col_min=c_min, col_max=c_max)
                         self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
                                              colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
                                                                                col_min=c_min, col_max=c_max),
                                              scale=scale_z, **kwargs_colorbar)
+                    args_auxi["color"] = colors
+
                 else:
                     if share_colorbar:
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
@@ -1982,21 +2392,58 @@ To display several Graphique in one, use a Multigraph
                 self.param_lines.append(args_auxi)
             if isinstance(share_colorbar, bool) and share_colorbar:
                 if scale_z == "linear":
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    if cmap == "default":
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_min: str = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_max: str = color_max
+
+                        colors: np.ndarray = linear_color_interpolation(np.linespace(0, 1, 255),
+                                                                        val_min=0, val_max=1,
+                                                                        col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = cmap_auxi(np.linespace(0, 1, 255))
+
                     self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
+                                         colors=colors,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
+
                 elif scale_z == "log":
-                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    if cmap == "default":
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_min: str = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_max: str = color_max
+
+                        colors: np.ndarray = linear_color_interpolation(np.geomspace(z_min, z_max, 255),
+                                                                        val_min=np.log10(z_min),
+                                                                        val_max=np.log10(z_max),
+                                                                        col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = cmap_auxi((np.geomspace(z_min, z_max, 255) - z_min) / (z_max - z_min))
                     self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
-                                         colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                           col_min=c_min, col_max=c_max),
+                                         colors=colors,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
                 else:
                     c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                     c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
@@ -2031,12 +2478,18 @@ To display several Graphique in one, use a Multigraph
             #     kwargs["color"] = l_colors[self.compt_color + 1 % len(l_colors)]
             #     self.compt_color += 1
             if z is not None:
-                if z is not None and scale_z == "linear" or scale_z == "symlog":
+                if z is not None and scale_z == "linear" or scale_z == "log":
                     if isinstance(share_colorbar, bool):
                         z_min: np.float64 = np.min(z)
                         z_max: np.float64 = np.max(z)
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                        else:
+                            c_min: str = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        else:
+                            c_max: str = color_max
                     else:
                         z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                         z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
@@ -2066,7 +2519,8 @@ To display several Graphique in one, use a Multigraph
                 else:
                     z_min: np.float64 = np.double(0.)
                     z_max: np.float64 = np.double(0.)
-                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+                if z is not None and scale_z == "symlog" and (
+                        (z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
                     if isinstance(share_colorbar, bool):
                         z_min_pos: np.float64 = np.min(z[z > 0])
                     else:
@@ -2085,11 +2539,28 @@ To display several Graphique in one, use a Multigraph
                     z_max_neg: np.float64 = 0.
             colors: np.ndarray[str] = []
             if scale_z == "linear" and z is not None:
-                colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
-                                                    col_min=c_min, col_max=c_max)
+                if cmap == "default":
+                    colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
+                                                        col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi(
+                        np.minimum(np.maximum((z - z_min) / (z_max - z_min), 0.), 1.))
             elif scale_z == "log" and z is not None and np.any(z > 0):
-                colors = linear_color_interpolation(np.log10(z[z > 0]), val_min=np.log10(z_min),
-                                                    val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                if cmap == "default":
+                    colors = linear_color_interpolation(np.log10(np.maximum(z, z[z > 0].min())), val_min=np.log10(z_min),
+                                                        val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi(
+                        np.minimum(np.maximum((np.log10(np.maximum(z, z[z > 0].min())) -
+                                               np.log10(z_min)) / (np.log10(z_max) - np.log10(z_min)), 0.), 1.))
             else:
                 if z is not None:
                     colors = np.full(len(z), c_med)
@@ -2149,11 +2620,23 @@ To display several Graphique in one, use a Multigraph
                         if "color" not in kwargs and len(y) <= 4:
                             args_auxi["color"] = l_colors[(self.compt_color + 1 + i) % len(l_colors)]
                         elif "color" not in kwargs:
-                            args_auxi["color"] = linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
-                                                                            col_min=l_colors[(self.compt_color + 1)
-                                                                                             % len(l_colors)],
-                                                                            col_max=l_colors[(self.compt_color + 2)
-                                                                                             % len(l_colors)])
+                            if cmap == "default":
+                                if color_min is None:
+                                    c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                                else:
+                                    c_min: str = color_min
+                                if color_max is None:
+                                    c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                                else:
+                                    c_max: str = color_max
+                                args_auxi["color"] = linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
+                                                                                col_min=c_min, col_max=c_max)
+                            elif cmap not in list(plt.colormaps):
+                                raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                                  "isn't awalible. Please use ", list(plt.colormaps))
+                            else:
+                                cmap_auxi = plt.get_cmap(cmap)
+                                args_auxi["color"] = cmap_auxi(i / (len(y) - 1))
 
                     elif len(z) == len(y):
                         args_auxi["color"] = colors[i]
@@ -2167,17 +2650,45 @@ To display several Graphique in one, use a Multigraph
             if z is None and len(y) <= 4 and "color" not in kwargs:
                 self.compt_color += len(y)
             elif z is None and "color" not in kwargs:
-                self.compt_color += 2
+                if color_max is None and "cmap" == "default":
+                    self.compt_color += 1
+                if color_min is None and "cmap" == "default":
+                    self.compt_color += 1
             elif z is not None and scale_z == "linear" and isinstance(share_colorbar, bool) and not share_colorbar:
+                if cmap == "default":
+                    if color_max is None:
+                        self.compt_color += 1
+                    if color_min is None:
+                        self.compt_color += 1
+                    colors = linear_color_interpolation(np.linspace(z_min, z_max, 255),
+                                                        col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi(np.linespace(0, 1, 255))
+
                 self.customized_cmap(values=np.linspace(z_min, z_max, 255),
-                                     colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                       col_min=c_min, col_max=c_max),
+                                     colors=colors,
                                      scale=scale_z, **kwargs_colorbar)
-                self.compt_color += 2
             elif z is not None and scale_z == "log" and isinstance(share_colorbar, bool) and not share_colorbar:
+                if cmap == "default":
+                    if color_max is None:
+                        self.compt_color += 1
+                    if color_min is None:
+                        self.compt_color += 1
+                    colors = linear_color_interpolation(np.geomspace(z_min, z_max, 255),
+                                                                       col_min=c_min, col_max=c_max)
+                elif cmap not in list(plt.colormaps):
+                    raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                      "isn't awalible. Please use ", list(plt.colormaps))
+                else:
+                    cmap_auxi = plt.get_cmap(cmap)
+                    colors: np.ndarray[str] = cmap_auxi((np.geomspace(z_min, z_max, 255) - z_min) / (z_max - z_min))
+
                 self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
-                                     colors=linear_color_interpolation(np.linspace(z_min, z_max, 255),
-                                                                       col_min=c_min, col_max=c_max),
+                                     colors=colors,
                                      scale=scale_z, **kwargs_colorbar)
                 self.compt_color += 2
             elif z is not None and isinstance(share_colorbar, bool) and not share_colorbar:
@@ -2220,18 +2731,25 @@ To display several Graphique in one, use a Multigraph
                 kwargs["color"] = l_colors[self.compt_color + 1 % len(l_colors)]
                 self.compt_color += 1
             elif z is not None:
-                if z is not None and scale_z == "linear" or scale_z == "symlog":
+                if z is not None and scale_z == "linear" or scale_z == "log":
                     if isinstance(share_colorbar, bool):
                         z_min: np.float64 = np.min(z)
                         z_max: np.float64 = np.max(z)
-                        c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
-                        c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                        if color_min is None:
+                            c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_min: str = color_min
+                        if color_max is None:
+                            c_max: str = l_colors[(self.compt_color + 2) % len(l_colors)]
+                            self.compt_color += 1
+                        else:
+                            c_max: str = color_max
                     else:
                         z_min: np.float64 = np.min(self.custum_colorbar_values[share_colorbar])
                         z_max: np.float64 = np.max(self.custum_colorbar_values[share_colorbar])
                         c_min: str = self.custum_colorbar_colors[share_colorbar][0]
                         c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
-
                 elif z is not None:
                     if isinstance(share_colorbar, bool):
                         c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
@@ -2251,11 +2769,12 @@ To display several Graphique in one, use a Multigraph
                         c_med: str = self.custum_colorbar_colors[share_colorbar][
                             np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
                         c_max: str = self.custum_colorbar_colors[share_colorbar][-1]
-
                 else:
                     z_min: np.float64 = np.double(0.)
                     z_max: np.float64 = np.double(0.)
-                if z is not None and scale_z == "symlog" and ((z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
+
+                if z is not None and scale_z == "symlog" and (
+                        (z > 0).sum() > 0 or not isinstance(share_colorbar, bool)):
                     if isinstance(share_colorbar, bool):
                         z_min_pos: np.float64 = np.min(z[z > 0])
                     else:
@@ -2263,6 +2782,7 @@ To display several Graphique in one, use a Multigraph
                             np.argwhere(self.custum_colorbar_values[share_colorbar] > 0)[0, 0]]
                 else:
                     z_min_pos: np.float64 = 0.
+
                 if z is not None and scale_z == "symlog" and (z < 0).sum() > 0:
                     if isinstance(share_colorbar, bool):
                         z_max_neg: np.float64 = np.max(z[z < 0])
@@ -2281,15 +2801,34 @@ To display several Graphique in one, use a Multigraph
                 colors: np.ndarray[str] = []
                 colors_cmap: np.ndarray[str] = []
                 if scale_z == "linear" and z is not None:
-                    colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
-                                                        col_min=c_min, col_max=c_max)
-                    colors_cmap = linear_color_interpolation(np.linspace(z_min, z_max, 255), val_min=z_min, val_max=z_max,
+                    if cmap == "default":
+                        colors = linear_color_interpolation(z, val_min=z_min, val_max=z_max,
                                                             col_min=c_min, col_max=c_max)
+                        colors_cmap = linear_color_interpolation(np.linspace(z_min, z_max, 255), val_min=z_min,
+                                                                 val_max=z_max,
+                                                                 col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = cmap_auxi(np.maximum(np.minimum((z - z_min) / (z_max - z_min), 1), 0))
+                        colors_cmap = cmap_auxi(np.linspace(0., 1., 255))
+
                 elif scale_z == "log" and z is not None and np.any(z > 0):
-                    colors = linear_color_interpolation(np.log10(z[idx_s]), val_min=np.log10(z_min),
-                                                        val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
-                    colors_cmap = linear_color_interpolation(np.log10(np.linspace(z_min, z_max, 255)), val_min=np.log10(z_min),
+                    if "cmap" == "default":
+                        colors = linear_color_interpolation(np.log10(np.maximum(z, z[idx_s].min())), val_min=np.log10(z_min),
                                                             val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                        colors_cmap = linear_color_interpolation(np.log10(np.geomspace(z_min, z_max, 255)),
+                                                                 val_min=np.log10(z_min),
+                                                                 val_max=np.log10(z_max), col_min=c_min, col_max=c_max)
+                    elif cmap not in list(plt.colormaps):
+                        raise UserWarning("Graphique.line : the colorbar ", cmap,
+                                          "isn't awalible. Please use ", list(plt.colormaps))
+                    else:
+                        cmap_auxi = plt.get_cmap(cmap)
+                        colors: np.ndarray[str] = cmap_auxi(np.maximum(np.minimum((np.log10(np.maximum(z, z[idx_s].min())) - np.log10(z_min)) / (np.log10(z_max) - np.log10(z_min)), 1), 0))
+                        colors_cmap = cmap_auxi((np.geomspace(z_min, z_max, 255) - z_min) / (z_max - z_min))
                 elif z is not None:
                     colors = np.full(len(z), c_med)
                     ma = z > 0
@@ -2307,17 +2846,16 @@ To display several Graphique in one, use a Multigraph
                                                                  val_min=np.log10(-z_max_neg),
                                                                  val_max=np.log10(-z_min),
                                                                  col_min=c_med, col_max=c_min)
+
                 kwargs["color"] = colors
                 if scale_z == "linear" and isinstance(share_colorbar, bool) and not share_colorbar:
                     self.customized_cmap(values=np.linspace(z_min, z_max, 255),
                                          colors=colors_cmap,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
                 elif scale_z == "log" and np.any(z > 0.) and isinstance(share_colorbar, bool) and not share_colorbar:
                     self.customized_cmap(values=np.geomspace(z_min, z_max, 255),
                                          colors=colors_cmap,
                                          scale=scale_z, **kwargs_colorbar)
-                    self.compt_color += 2
                 elif isinstance(share_colorbar, bool) and not share_colorbar:
                     c_min: str = l_colors[(self.compt_color + 1) % len(l_colors)]
                     c_med: str = l_colors[(self.compt_color + 2) % len(l_colors)]
@@ -2423,6 +2961,8 @@ To display several Graphique in one, use a Multigraph
 
         kwargs
             Additional argument to ```plot()``` function like linestyle, color....
+            To rotate the text one can use the 'rotation' parameter with the angle in degrees or
+             the "vertical" "horizontal" keyword.
 
         Returns
         -------
@@ -2438,7 +2978,7 @@ To display several Graphique in one, use a Multigraph
         if (isinstance(x, list | np.ndarray) and isinstance(y, list | np.ndarray)
                 and (len(np.shape(np.array(x))) == 1 and len(np.shape(np.array(y))) == 1
                      and len(np.array(x)) == len(np.array(y)))):
-            args_auxi: list[dict] = [{"axis_config":axis_config} for X in x]
+            args_auxi: list[dict] = [{"axis_config": axis_config} for X in x]
             for k in kwargs.keys():
                 if isinstance(kwargs[k], list | np.ndarray) and len(kwargs[k]) == len(x):
                     for i in range(len(x)):
@@ -2559,9 +3099,31 @@ To display several Graphique in one, use a Multigraph
         if axis_config not in ["bl", "tl", "tr", "br"]:
             raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-        if type(err_y) is str:
+        if isinstance(err_y, str):
             raise TypeError("Graphique.errorbar : no error on the y axis are provided")
-        if (len(err_y) != len(y) and len(err_y) != 2) or (len(err_y) == 2 and len(err_y[0]) != len(y)):
+        if isinstance(err_x, str) and marker == "":
+            marker = err_x
+            err_x = None
+        if (isinstance(err_y, list | np.ndarray)
+                and ((isinstance(err_y[0], list | np.ndarray)
+                      and ((isinstance(x, list | np.ndarray)
+                            and len(err_y[0]) != len(x[0]))
+                           or (not isinstance(x, list | np.ndarray) and len(err_y[0]) != len(x))))
+                     or (not isinstance(err_y[0], list | np.ndarray) and len(err_y) != len(x)))):
+            raise ValueError(
+                "Graphique.errorbar the size of errors array should be equal to the size of"
+                "abscissa array  : x :" +
+                str(len(x)) + " y : " + str(len(y)) + " err y : " + str(len(err_y)))
+        if isinstance(err_y, float | np.float64 | np.float32):
+            if isinstance(y, list) and isinstance(y[0], np.ndarray | list):
+                err_y = [np.full(len(Y), err_y) for Y in y]
+            elif isinstance(y, list):
+                err_y = np.full(len(y), err_y)
+            else:
+                err_y = np.full(y.shape, err_y)
+
+        if (len(err_y) != len(y) and len(err_y) != 2) or (len(err_y) == 2 and
+                                                          len(err_y[0]) != len(y) and len(err_y[0]) != len(y[0])):
             raise ValueError(
                 "Graphique.errorbar the size of ordinate's errors array should be equal to the size of "
                 "ordinate array  : len(x)=" +
@@ -2575,24 +3137,28 @@ To display several Graphique in one, use a Multigraph
                 "ordinate array")
         elif (isinstance(y[0], list | np.ndarray)
               and ((not isinstance(err_y[0], list | np.ndarray)) or len(err_y[0]) != 2)
-              and np.any([(len(Y) != len(err_y) and len(err_y) != 2)
+              and np.any([(len(y) != len(err_y) and len(err_y) != 2)
                           or (len(err_y) == 2 and len(Y) != len(err_y[0])) for Y in y])):
             raise ValueError(
                 "Graphique.errorbar the size of ordinate's errors array should be equal to the size of "
                 "ordinate array")
-        if err_x is not None and (len(err_x) != len(x) or (len(err_x) == 2 and len(err_x[0]) != len(err_x))):
+        if (err_x is not None and isinstance(err_x, list | np.ndarray)
+                and (not isinstance(err_x[0], list | np.ndarray)
+                     and (len(err_x) != len(x) or (len(err_x) == 2 and len(err_x[0]) != len(x))))):
             raise ValueError(
                 "Graphique.errorbar the size of abscissa's errors array should be equal to the size of "
                 "abscissa array  : len(x)=" +
                 str(len(x)) + " len(y)=" + str(len(y)) + " shape(err y)=" + str(np.array(err_y).shape))
-        elif err_x is not None and (isinstance(y[0], list | np.ndarray) and isinstance(err_x[0], list | np.ndarray)
+        elif err_x is not None and (isinstance(y[0], list | np.ndarray) and isinstance(err_x, list | np.ndarray)
+                                    and isinstance(err_x[0], list | np.ndarray)
                                     and np.any([(len(X) != len(errX) and len(errX) != 2)
                                                 or (len(errX) == 2 and len(errX[0]) != len(X))
                                                 for (X, errX) in zip(x, err_x)])):
             raise ValueError(
                 "Graphique.errorbar the size of abscissa's errors array should be equal to the size of"
                 "ordinate array")
-        elif err_x is not None and (isinstance(x[0], list | np.ndarray)
+        elif err_x is not None and (isinstance(err_x, list | np.ndarray)
+                                    and isinstance(x[0], list | np.ndarray)
                                     and np.any([(len(X) != len(err_x) and len(err_x) != 2)
                                                 or (len(err_x) == 2 and len(err_x[0]) != len(X))
                                                 for X in x])):
@@ -2625,7 +3191,8 @@ To display several Graphique in one, use a Multigraph
                     self.err_y[-1 - i] = err_y[-1 - i]
                 else:
                     self.err_y[-1 - i] = err_y
-                if err_x is not None and isinstance(err_x[0], list | np.ndarray):
+                if (err_x is not None and isinstance(err_x, list | np.ndarray)
+                        and isinstance(err_x[0], list | np.ndarray)):
                     self.err_x[-1 - i] = err_x[-1 - i]
                 elif err_x is not None:
                     self.err_x[-1 - i] = err_x
@@ -2640,7 +3207,8 @@ To display several Graphique in one, use a Multigraph
 
     def errorplot(
             self, x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
-            marker: str = "", scale: str = "", hide: bool = False, axis_config: str = "bl", **kwargs) -> None:
+            marker: str = "", scale: str = "", hide: bool = False, axis_config: str = "bl",
+            alpha_error: np.float64 = np.double(0.5), color_errors: str | np.float64 = None, **kwargs) -> None:
         """
         Equivalent to plt.errorbar but the error is not represented by errorbars but by a
         uniform-colored polygon
@@ -2666,14 +3234,19 @@ To display several Graphique in one, use a Multigraph
         hide: bool, optional, default=False
             If True then the new line(s) is/are not plotted with the Graphique.
             To plot them, then change the plot order with self.set_indexs_plot_lines
-        kwargs
-             Additional argument to plot() function like linestyle, color....
         axis_config : str, optional, {"bl", "tl", "br", "tr"}, default="bl"
             The positions of x-y axis :
                 - "bl" is x-axis on the bottom, y-axis on the left (default).
                 - "tl" is x-axis on the top, y-axis on the left.
                 - "br" is x-axis on the bottom, y-axis on the right.
                 - "tr" is x-axis on the top, y-axis on the right.
+        alpha_error : float, optional, default=0.5
+            The trensparency parameter of the shaded area that represant errors
+        color_errors : str, optional
+            Color of the shaded area that represant error, default is the markers colors
+
+        kwargs
+             Additional argument to plot() function like linestyle, color....
 
         Returns
         -------
@@ -2685,11 +3258,21 @@ To display several Graphique in one, use a Multigraph
 
         if type(err_y) is str:
             raise TypeError("Graphique.errorbar : no error on the y axis are provided")
-        if len(err_y) != len(x):
+        if isinstance(err_y, list | np.ndarray) and (
+                (isinstance(err_y[0], list | np.ndarray) and len(err_y[0]) != len(x))
+                or (not isinstance(err_y[0], list | np.ndarray) and len(err_y) != len(x))):
             raise ValueError(
                 "Graphique.errorbar the size of errors array should be equal to the size of"
                 "abscissa array  : x :" +
                 str(len(x)) + " y : " + str(len(y)) + " err y : " + str(len(err_y)))
+        if isinstance(err_y, float | np.float64 | np.float32):
+            if isinstance(y, list) and isinstance(y[0], np.ndarray):
+                err_y = [np.full(len(Y), err_y) for Y in y]
+            elif isinstance(y, list):
+                err_y = np.full(len(y), err_y)
+            else:
+                err_y = np.full(y.shape, err_y)
+        compt_color: int = self.compt_color
         if scale == "":
             self.line(x, y, marker=marker, hide=hide, axis_config=axis_config, **kwargs)
         elif scale == "polaire":
@@ -2710,20 +3293,32 @@ To display several Graphique in one, use a Multigraph
             raise (ValueError("The scale " + scale + """ is not available. Please use : "", "polar",
             "loglog", "logx", "logy", "symloglog", "symlogx", "symlogy" """))
 
-        if isinstance(y, list | np.ndarray) and isinstance(err_y, list | np.ndarray):
-            for (Y, errY) in zip(y, err_y):
+        if (isinstance(y[0], list | np.ndarray) and isinstance(err_y, list | np.ndarray)
+                and isinstance(err_y[0], list | np.ndarray)):
+            for (Y, errY, i) in zip(y, err_y, np.arange(len(y))):
                 erry: list = list(Y + errY)
                 erry2: list = list(Y - errY)
                 erry2.reverse()
                 erry.extend(erry2)
-                x: list = list(x)
-                x2: list = x.copy()
+                xa: list = list(x)
+                x2: list = xa.copy()
                 x2.reverse()
-                x.extend(x2)
-                ind: np.ndarray = np.array([x, erry]).T
-                self.polygon(ind, facecolor=self.param_lines[-1]["color"])
-        elif isinstance(y, list | np.ndarray):
-            for Y in y:
+                xa.extend(x2)
+                ind: np.ndarray = np.array([xa, erry]).T
+                if color_errors is not None and isinstance(color_errors, str):
+                    self.polygon(ind, facecolor=color_errors, alpha=alpha_error)
+                elif color_errors is not None:
+                    self.polygon(ind, facecolor=color_errors[i], alpha=alpha_error)
+                elif len(y) < 4:
+                    self.polygon(ind, facecolor=l_colors[compt_color + i + 1], alpha=alpha_error)
+                else:
+                    self.polygon(ind, facecolor=linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
+                                                                           col_min=l_colors[compt_color + 1],
+                                                                           col_max=l_colors[compt_color + 2]),
+                                 alpha=alpha_error)
+
+        elif isinstance(y[0], list | np.ndarray):
+            for (Y, i) in zip(y, np.arange(len(y))):
                 erry: list = list(Y + err_y)
                 erry2: list = list(Y - err_y)
                 erry2.reverse()
@@ -2733,7 +3328,17 @@ To display several Graphique in one, use a Multigraph
                 x2.reverse()
                 x.extend(x2)
                 ind: np.ndarray = np.array([x, erry]).T
-                self.polygon(ind, facecolor=self.param_lines[-1]["color"])
+                if color_errors is not None and isinstance(color_errors, str):
+                    self.polygon(ind, facecolor=color_errors, alpha=alpha_error)
+                elif color_errors is not None:
+                    self.polygon(ind, facecolor=color_errors[i], alpha=alpha_error)
+                elif len(y) < 4:
+                    self.polygon(ind, facecolor=l_colors[compt_color + i + 1], alpha=alpha_error)
+                else:
+                    self.polygon(ind, facecolor=linear_color_interpolation(i, val_min=0, val_max=len(y) - 1,
+                                                                           col_min=l_colors[compt_color + 1],
+                                                                           col_max=l_colors[compt_color + 2]),
+                                 alpha=alpha_error)
         else:
             erry: list = list(y + err_y)
             erry2: list = list(y - err_y)
@@ -2744,7 +3349,12 @@ To display several Graphique in one, use a Multigraph
             x2.reverse()
             x.extend(x2)
             ind: np.ndarray = np.array([x, erry]).T
-            self.polygon(ind, facecolor=self.param_lines[-1]["color"])
+            if color_errors is not None:
+                if not isinstance(color_errors, str):
+                    raise UserWarning("The errors colors should be a string")
+                self.polygon(ind, facecolor=color_errors, alpha=alpha_error)
+            else:
+                self.polygon(ind, facecolor=l_colors[compt_color + 1], alpha=alpha_error)
 
     def polar(self, r: list | np.ndarray, theta: list | np.ndarray,
               z: np.ndarray | list | None = None, marker: str = "",
@@ -2924,7 +3534,7 @@ To display several Graphique in one, use a Multigraph
         --------
         >>> x = np.linspace(0, 10, 1000)
         >>> alpha = np.linspace(1, 5, 10)
-        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+        >>> colors = g.linear_color_interpolation(np.arange(len(alpha)), col_min=C1, col_max=C2)
         >>> gr = g.Graphique()
         >>> gr.loglog(x, [x*a for a in alpha], color=colors)
         >>> gr.customized_cmap(alpha, colors)
@@ -3455,7 +4065,7 @@ To display several Graphique in one, use a Multigraph
               colorscale: str = "linear",
               cmap: str = "default", colorbar_ticks: list | np.ndarray | None = None,
               colorbar_label: str = "", kwargs_colorbar: dict | None = None,
-              colorbar_index: int = ii_max,
+              colorbar_index: int = ii_max, color_min: str | tuple = None, color_max: str | tuple = None,
               vmin: np.float64 = -np.inf, vmax: np.float64 = np.inf, axis_config: str = "bl",
               **kwargs) -> None:
         """
@@ -3504,6 +4114,10 @@ To display several Graphique in one, use a Multigraph
             The minimum value for the colorbar
         vmax : np.float64, optional, default : the maximum of array_image
             The maximum value for the colorbar
+        color_min : str | tuple, optional
+            The color associated with the minimum value for a `default` cmap
+        color_max : str | tuple, optional
+            The color associated with the maximum value for a `default` cmap
         axis_config : str, optional, {"bl", "tl", "br", "tr"}, default="bl"
             The positions of x-y axis :
                 - "bl" is x-axis on the bottom, y-axis on the left (default).
@@ -3586,35 +4200,37 @@ To display several Graphique in one, use a Multigraph
             if "size" not in kwargs_colorbar.keys():
                 kwargs_colorbar["size"] = 0.02
 
-            colors_r: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
-                                                                   col_min=to_hex((0, 0, 0)),
-                                                                   col_max=to_hex((1, 0, 0)))
-
-            self.customized_cmap(color_values, colors_r, ticks=colorbar_ticks, label=colorbar_label,
-                                 **kwargs_colorbar)
-            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
-
-            colors_v: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
-                                                                   col_min=to_hex((0, 0, 0)),
-                                                                   col_max=to_hex((0, 1, 0)))
-            self.customized_cmap(color_values, colors_v, ticks="", label="", share_axis=True,
-                                 space_between=0.005, **kwargs_colorbar)
-            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
-
-            colors_b: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
-                                                                   col_min=to_hex((0, 0, 0)),
-                                                                   col_max=to_hex((0, 0, 1)))
-            self.customized_cmap(color_values, colors_b, ticks="", label="", share_axis=True,
-                                 space_between=0.005, **kwargs_colorbar)
-            self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+            # colors_r: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+            #                                                        col_min=to_hex((0, 0, 0)),
+            #                                                        col_max=to_hex((1, 0, 0)))
+            #
+            # self.customized_cmap(color_values, colors_r, ticks=colorbar_ticks, label=colorbar_label,
+            #                      **kwargs_colorbar)
+            # self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+            #
+            # colors_v: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+            #                                                        col_min=to_hex((0, 0, 0)),
+            #                                                        col_max=to_hex((0, 1, 0)))
+            # self.customized_cmap(color_values, colors_v, ticks="", label="", share_axis=True,
+            #                      space_between=0.005, **kwargs_colorbar)
+            # self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+            #
+            # colors_b: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
+            #                                                        col_min=to_hex((0, 0, 0)),
+            #                                                        col_max=to_hex((0, 0, 1)))
+            # self.customized_cmap(color_values, colors_b, ticks="", label="", share_axis=True,
+            #                      space_between=0.005, **kwargs_colorbar)
+            # self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
         elif colorbar_index == ii_max:
             if cmap == "default":
+                if color_min is None:
+                    color_min = l_colors[(self.compt_color + 1) % len(l_colors)]
+                if color_max is None:
+                    color_max = l_colors[(self.compt_color + 2) % len(l_colors)]
+                    self.compt_color += 1
                 colors: np.ndarray[str] = linear_color_interpolation(np.arange(len(color_values)),
-                                                                     col_min=l_colors[(self.compt_color + 1)
-                                                                                      % len(l_colors)],
-                                                                     col_max=l_colors[(self.compt_color + 2)
-                                                                                      % len(l_colors)])
-                self.compt_color += 2
+                                                                     col_min= color_min,
+                                                                     col_max= color_max)
             elif cmap not in list(plt.colormaps):
                 raise UserWarning("Graphique.image : the colorbar ", cmap,
                                   "isn't awalible. Please use ", list(plt.colormaps))
@@ -3626,8 +4242,16 @@ To display several Graphique in one, use a Multigraph
                 kwargs_colorbar = dict()
             self.customized_cmap(color_values, colors, ticks=colorbar_ticks, label=colorbar_label, **kwargs_colorbar)
             self.index_colorbar_image.append(len(self.custum_colorbar_colors) - 1)
+            if colorscale == "log":
+                self.config_colorbar(-1, ticks_label=np.array(["{:.2e}".format(t) for t in colorbar_ticks]))
+            if np.any(array_image < vmin) and np.any(array_image > vmax):
+                self.config_colorbar(extend="both")
+            elif np.any(array_image < vmin):
+                self.config_colorbar(extend="min")
+            elif np.any(array_image > vmax):
+                self.config_colorbar(extend="max")
         else:
-            self.index_colorbar_image.append(int(cmap))
+            self.index_colorbar_image.append(int(colorbar_index))
         self.array_image = array_image
         self.x_axe_image = np.array(x_axe)
         self.y_axe_image = np.array(y_axe)
@@ -3683,13 +4307,25 @@ To display several Graphique in one, use a Multigraph
             raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
         kwargs["axis_config"] = axis_config
         idx_levels: np.ndarray | None = None
-        if type(levels) is list or type(levels) is np.ndarray:
+        if isinstance(levels, list):
+            levels = np.array(levels)
+        if isinstance(levels, np.ndarray):
             idx_levels = np.argsort(levels)
             levels = levels[idx_levels]
 
+        if "color" in kwargs.keys():
+            if isinstance(kwargs["color"], np.ndarray | list):
+                kwargs["colors"] = np.copy(kwargs["color"])
+            else:
+                kwargs["colors"] = kwargs["color"]
+            del kwargs["color"]
+
         if "colors" in kwargs.keys() and (type(kwargs["colors"]) is list
                                           or type(kwargs["colors"]) is np.ndarray):
-            self.color_label_contours = kwargs["colors"]
+            if idx_levels is None:
+                self.color_label_contours = kwargs["colors"]
+            else:
+                self.color_label_contours = kwargs["colors"][idx_levels]
             del kwargs["colors"]
 
         if levels is not None:
@@ -3716,8 +4352,8 @@ To display several Graphique in one, use a Multigraph
                 self.levels = kwargs['levels']
                 del kwargs['levels']
             liste_intersect: list[str] = ['alpha0', 'vmin', 'vmax', 'norm']
-            if "colors" not in kwargs:
-                liste_intersect.append("cmap")
+            # if "colors" not in kwargs:
+            #     liste_intersect.append("cmap")
             for p in liste_intersect:
                 if p in self.param_image:
                     self.param_contours[p] = self.param_image[p]
@@ -3868,43 +4504,43 @@ To display several Graphique in one, use a Multigraph
         """
         if 'xticks' in kwargs:
             if axis == "bl" or axis == "all":
-                self.x_axe[0] = kwargs['xticks']
+                self.x_axe[0] = np.array(kwargs['xticks'])
             if axis == "tl" or axis == "all":
-                self.x_axe[1] = kwargs['xticks']
+                self.x_axe[1] = np.array(kwargs['xticks'])
             if axis == "tr" or axis == "all":
-                self.x_axe[2] = kwargs['xticks']
+                self.x_axe[2] = np.array(kwargs['xticks'])
             if axis == "br" or axis == "all":
-                self.x_axe[3] = kwargs['xticks']
+                self.x_axe[3] = np.array(kwargs['xticks'])
             del kwargs['xticks']
         if 'yticks' in kwargs:
             if axis == "bl" or axis == "all":
-                self.y_axe[0] = kwargs['yticks']
+                self.y_axe[0] = np.array(kwargs['yticks'])
             if axis == "tl" or axis == "all":
-                self.y_axe[1] = kwargs['yticks']
+                self.y_axe[1] = np.array(kwargs['yticks'])
             if axis == "tr" or axis == "all":
-                self.y_axe[2] = kwargs['yticks']
+                self.y_axe[2] = np.array(kwargs['yticks'])
             if axis == "br" or axis == "all":
-                self.y_axe[3] = kwargs['yticks']
+                self.y_axe[3] = np.array(kwargs['yticks'])
             del kwargs['yticks']
         if 'xticklabels' in kwargs:
             if axis == "bl" or axis == "all":
-                self.labels_x_ticks[0] = kwargs['xticklabels']
+                self.labels_x_ticks[0] = np.array(kwargs['xticklabels'])
             if axis == "tl" or axis == "all":
-                self.labels_x_ticks[1] = kwargs['xticklabels']
+                self.labels_x_ticks[1] = np.array(kwargs['xticklabels'])
             if axis == "tr" or axis == "all":
-                self.labels_x_ticks[2] = kwargs['xticklabels']
+                self.labels_x_ticks[2] = np.array(kwargs['xticklabels'])
             if axis == "br" or axis == "all":
-                self.labels_x_ticks[3] = kwargs['xticklabels']
+                self.labels_x_ticks[3] = np.array(kwargs['xticklabels'])
             del kwargs['xticklabels']
         if "yticklabels" in kwargs:
             if axis == "bl" or axis == "all":
-                self.labels_y_ticks[0] = kwargs['yticklabels']
+                self.labels_y_ticks[0] = np.array(kwargs['yticklabels'])
             if axis == "tl" or axis == "all":
-                self.labels_y_ticks[1] = kwargs['yticklabels']
+                self.labels_y_ticks[1] = np.array(kwargs['yticklabels'])
             if axis == "tr" or axis == "all":
-                self.labels_y_ticks[2] = kwargs['yticklabels']
+                self.labels_y_ticks[2] = np.array(kwargs['yticklabels'])
             if axis == "br" or axis == "all":
-                self.labels_y_ticks[3] = kwargs['yticklabels']
+                self.labels_y_ticks[3] = np.array(kwargs['yticklabels'])
             del kwargs['yticklabels']
         if "Figure" in kwargs:
             self.fig = kwargs["Figure"]
@@ -3921,6 +4557,343 @@ To display several Graphique in one, use a Multigraph
             self.param_ax_tr.update(kwargs)
         if (axis == "br") | (axis == "all"):
             self.param_ax_br.update(kwargs)
+
+    def config_ticks(self, axis: str = "bl",  direction: str = "both",**kwargs) -> None:
+        """
+        Additionals configurations for ax
+
+        Parameters
+        ----------
+        axis : str, optional, {"bl", "tl", "br", "tr", "all"}, default="bl"
+            The positions of x-y axis to config:
+                - "bl" is x-axis on the bottom, y-axis on the left (default).
+                - "tl" is x-axis on the top, y-axis on the left.
+                - "br" is x-axis on the bottom, y-axis on the right.
+                - "tr" is x-axis on the top, y-axis on the right.
+                - "all" will configurate aull axis
+
+        direction : str, optional, {"x", "y", "both"}, default="both":
+            The axis direction where ticks are configurated
+
+        kwargs
+            Keywords available (see matplotlib documentation):
+            - ```sharex```, ```sharey``` Axes, optional
+            The x- or y-axis isshared with the x- or y-axis in the input Axes.
+            Note that it is not possible to unshare axes.
+            - ```frameonbool``` : default=True
+            Whether the Axes frame is visible.
+            - ```box_aspect``` : float, optional
+            Set a fixed aspect for the Axes box,
+            i.e. the ratio of height to width. See set_box_aspect for details.
+            - ```forward_navigation_events``` : bool or "auto", default: "auto"
+            Control whether pan/zoom events are passed through to Axes below this one. "auto" is True for axes with an
+            invisible patch and False otherwise.
+            - Other optional keyword arguments:
+            -- adjustable {'box', 'datalim'}
+            -- agg_filter : a filter function, which takes a (m, n, 3) float array and a dpi value, and returns
+            a (m, n, 3) array and two offsets from the bottom left corner of the image
+            -- alpha : scalar or None
+            -- anchor : (float, float) or {'C', 'SW', 'S', 'SE', 'E', 'NE', ...}
+            -- animated : bool
+            -- aspect : {'auto', 'equal'} or float
+            -- autoscale_on : bool
+            -- autoscalex_on
+            -- autoscaley_on
+            -- axes_locator : Callable[[Axes, Renderer], Bbox]
+            -- axisbelow : bool or 'line'
+            -- box_aspect : float or None
+            -- clip_on : bool
+            -- facecolor or fc : color
+            -- figure : Figure
+            -- forward_navigation_events : bool or "auto"
+            -- frame_on : bool
+            -- gid : str
+            -- in_layout : bool
+            -- label : object
+            -- mouseover : bool
+            -- navigate : bool
+            -- navigate_mode
+            -- picker : None or bool or float
+            -- position : [left, bottom, width, height]
+            -- rasterization_zorder : float or None
+            -- rasterized : bool
+            -- sketch_params : (scale: float, length: float, randomness: float)
+            -- snap : bool or None
+            -- subplotspec
+            -- title : str
+            -- url : str
+            -- visible : bool
+            -- xbound : (lower: float, upper: float)
+            -- xlabel : str
+            -- xlim : (left: float, right: float)
+            -- xmargin : float greater than -0.5
+            -- xscale
+            -- xticklabels
+            -- xticks
+            -- ybound : (lower: float, upper: float)
+            -- ylabel : str
+            -- ylim : (bottom: float, top: float)
+            -- ymargin : float greater than -0.5
+            -- yscale
+            -- yticklabels
+            -- yticks
+            -- zorder : float
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+
+        matplotlib.axes.set
+            The function used with kwargs
+
+        """
+        if (axis == "bl") | (axis == "all"):
+            if direction == "x" or direction == "both":
+                self.ticks_param_ax[0].update(kwargs)
+            if direction == "y" or direction == "both":
+                self.ticks_param_ax[1].update(kwargs)
+        if (axis == "tl") | (axis == "all"):
+            if direction == "x" or direction == "both":
+                self.ticks_param_ax_tl[0].update(kwargs)
+            if direction == "y" or direction == "both":
+                self.ticks_param_ax_tl[1].update(kwargs)
+        if (axis == "tr") | (axis == "all"):
+            if direction == "x" or direction == "both":
+                self.ticks_param_ax_tr[0].update(kwargs)
+            if direction == "y" or direction == "both":
+                self.ticks_param_ax_tr[1].update(kwargs)
+        if (axis == "br") | (axis == "all"):
+            if direction == "x" or direction == "both":
+                self.ticks_param_ax_br[0].update(kwargs)
+            if direction == "y" or direction == "both":
+                self.ticks_param_ax_br[1].update(kwargs)
+
+    def config_spines(self, spine: str | list[str] | np.ndarray[str]= "all", axis: str = "bl", **kwargs) -> None:
+        """
+        Additionals configurations for ax
+
+        Parameters
+        ----------
+        spine : str, optional, {"top", "bottom", "left", "right", "all"}:
+            The spine to be configurated
+        axis : str, optional, {"bl", "tl", "br", "tr", "all"}, default="bl"
+            The positions of x-y axis to config:
+                - "bl" is x-axis on the bottom, y-axis on the left (default).
+                - "tl" is x-axis on the top, y-axis on the left.
+                - "br" is x-axis on the bottom, y-axis on the right.
+                - "tr" is x-axis on the top, y-axis on the right.
+                - "all" will configurate aull axis
+
+        kwargs
+            Keywords available (see matplotlib documentation):
+            - ```sharex```, ```sharey``` Axes, optional
+            The x- or y-axis isshared with the x- or y-axis in the input Axes.
+            Note that it is not possible to unshare axes.
+            - ```frameonbool``` : default=True
+            Whether the Axes frame is visible.
+            - ```box_aspect``` : float, optional
+            Set a fixed aspect for the Axes box,
+            i.e. the ratio of height to width. See set_box_aspect for details.
+            - ```forward_navigation_events``` : bool or "auto", default: "auto"
+            Control whether pan/zoom events are passed through to Axes below this one. "auto" is True for axes with an
+            invisible patch and False otherwise.
+            - Other optional keyword arguments:
+            -- adjustable {'box', 'datalim'}
+            -- agg_filter : a filter function, which takes a (m, n, 3) float array and a dpi value, and returns
+            a (m, n, 3) array and two offsets from the bottom left corner of the image
+            -- alpha : scalar or None
+            -- anchor : (float, float) or {'C', 'SW', 'S', 'SE', 'E', 'NE', ...}
+            -- animated : bool
+            -- aspect : {'auto', 'equal'} or float
+            -- autoscale_on : bool
+            -- autoscalex_on
+            -- autoscaley_on
+            -- axes_locator : Callable[[Axes, Renderer], Bbox]
+            -- axisbelow : bool or 'line'
+            -- box_aspect : float or None
+            -- clip_on : bool
+            -- facecolor or fc : color
+            -- figure : Figure
+            -- forward_navigation_events : bool or "auto"
+            -- frame_on : bool
+            -- gid : str
+            -- in_layout : bool
+            -- label : object
+            -- mouseover : bool
+            -- navigate : bool
+            -- navigate_mode
+            -- picker : None or bool or float
+            -- position : [left, bottom, width, height]
+            -- rasterization_zorder : float or None
+            -- rasterized : bool
+            -- sketch_params : (scale: float, length: float, randomness: float)
+            -- snap : bool or None
+            -- subplotspec
+            -- title : str
+            -- url : str
+            -- visible : bool
+            -- xbound : (lower: float, upper: float)
+            -- xlabel : str
+            -- xlim : (left: float, right: float)
+            -- xmargin : float greater than -0.5
+            -- xscale
+            -- xticklabels
+            -- xticks
+            -- ybound : (lower: float, upper: float)
+            -- ylabel : str
+            -- ylim : (bottom: float, top: float)
+            -- ymargin : float greater than -0.5
+            -- yscale
+            -- yticklabels
+            -- yticks
+            -- zorder : float
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+
+        matplotlib.axes.set
+            The function used with kwargs
+
+        """
+        if (axis == "bl") | (axis == "all"):
+            if (isinstance(spine, str) and (spine == "bottom" or spine == "all")
+                    or (isinstance(spine, list | np.ndarray) and ("bottom" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "bottom")[0, 0]] 
+                self.param_spines_ax[0].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "left" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("left" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "left")[0, 0]] 
+                self.param_spines_ax[1].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "top" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("top" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "top")[0, 0]] 
+                self.param_spines_ax[2].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "right" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("right" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "right")[0, 0]] 
+                self.param_spines_ax[3].update(kwargs_loc)
+        if (axis == "tl") | (axis == "all"):
+            if (isinstance(spine, str) and (spine == "bottom" or spine == "all")
+                    or (isinstance(spine, list | np.ndarray) and ("bottom" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "bottom")[0, 0]] 
+                self.param_spines_ax_tl[0].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "left" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("left" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "left")[0, 0]] 
+                self.param_spines_ax_tl[1].update(kwargs)
+            if (isinstance(spine, str) and (spine == "top" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("top" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "top")[0, 0]] 
+                self.param_spines_ax_tl[2].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "right" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("right" in spine or "all" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "right")[0, 0]] 
+                self.param_spines_ax_tl[3].update(kwargs_loc)
+        if (axis == "tr") | (axis == "all"):
+            if (isinstance(spine, str) and (spine == "bottom" or spine == "all")
+                    or (isinstance(spine, list | np.ndarray) and ("bottom" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "bottom")[0, 0]] 
+                self.param_spines_ax_tr[0].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "left" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("left" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "left")[0, 0]] 
+                self.param_spines_ax_tr[1].update(kwargs)
+            if (isinstance(spine, str) and (spine == "top" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("top" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "top")[0, 0]] 
+                self.param_spines_ax_tr[2].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "right" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("right" in spine or "all" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "right")[0, 0]] 
+                self.param_spines_ax_tr[3].update(kwargs_loc)
+        if (axis == "br") | (axis == "all"):
+            if (isinstance(spine, str) and (spine == "bottom" or spine == "all")
+                    or (isinstance(spine, list | np.ndarray) and ("bottom" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "bottom")[0, 0]] 
+                self.param_spines_ax_br[0].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "left" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("left" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "left")[0, 0]] 
+                self.param_spines_ax_br[1].update(kwargs)
+            if (isinstance(spine, str) and (spine == "top" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("top" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "top")[0, 0]] 
+                self.param_spines_ax_br[2].update(kwargs_loc)
+            if (isinstance(spine, str) and (spine == "right" or spine == "all")
+                    or  (isinstance(spine, list | np.ndarray) and ("right" in spine or "all" in spine))):
+                kwargs_loc: dict = kwargs.copy()
+                if isinstance(spine, list | np.ndarray):
+                    for k in kwargs_loc.keys():
+                        if isinstance(kwargs_loc[k], list | np.ndarray) and len(kwargs_loc[k]) == len(spine):
+                            kwargs_loc[k] = kwargs_loc[k][np.argwhere(np.array(spine) == "right")[0, 0]] 
+                self.param_spines_ax_br[3].update(kwargs_loc)
 
     def config_legende(self, **kwargs) -> None:
         """
@@ -4101,19 +5074,19 @@ To display several Graphique in one, use a Multigraph
                     If a tuple of colors (string, float, RGB, etc), different labels will be plotted in different
                      colors in the order specified.
 
-            - inlinebool, default: True
+            - inline: bool, default: True
                 If True the underlying contour is removed where the label is placed.
 
-            - inline_spacingfloat, default: 5
+            - inline_spacing: float, default: 5
                 Space in pixels to leave on each side of label when placing inline.
                 This spacing will be exact for labels at locations where the contour is straight, less so for labels on
                 curved contours.
 
-            - fmt str, optional
+            - fmt: str, optional
                 How the levels are formatted:  it is interpreted as a %-style format string.
                 The default is to use a standard ScalarFormatter.
 
-            - manual bool or iterable, default: False
+            - manual: bool or iterable, default: False
                 If True, contour labels will be placed manually using mouse clicks. Click the first button near a
                 contour to add a label, click the second button (or potentially both mouse buttons at once) to finish
                 adding labels. The third button can be used to remove the last label added, but only if labels are not
@@ -4123,14 +5096,14 @@ To display several Graphique in one, use a Multigraph
                 manual can also be an iterable object of (x, y) tuples. Contour labels will be created as if mouse is
                 clicked at each (x, y) position.
 
-            - rightside_upbool, default: True
+            - rightside_up: bool, default: True
                 If True, label rotations will always be plus or minus 90 degrees from level.
 
-            - use_clabeltext bool, default: False
+            - use_clabel: text :bool, default: False
                 If True, use Text.set_transform_rotates_text to ensure that label rotation is updated whenever the Axes
                 aspect changes.
 
-            - zorder float or None, default: (2 + contour.get_zorder())
+            - zorder: float or None, default: (2 + contour.get_zorder())
                 zorder of the contour labels.
         
         Returns
@@ -4387,7 +5360,7 @@ To display several Graphique in one, use a Multigraph
         kwargs
             'family' : 'fantasy','monospace','sans-serif','serif','cursive'
             'styles' : 'normal', 'italic', 'oblique'
-            'size' : valeur numérique
+            'size' : numerical value
             'variants' : 'normal', 'small-caps'
             'weight' : 'light', 'normal', 'medium', 'semibold', 'bold', 'heavy', 'black'
 
@@ -4439,6 +5412,109 @@ To display several Graphique in one, use a Multigraph
                 self.ticks_colorbar[index_colorbar] = [-np.inf]
             self.param_colorbar[index_colorbar].update(kwargs)
 
+    def config_line(self, index_line: int = ii_max, hide: bool = False, **kwargs) -> None:
+        """
+
+        Colorbar additianal parameter
+
+        Parameters
+        ----------
+        index_line : int, optional
+            The index of the line (default the parameters are added for all liness)
+        hide : bool, optional, default: False
+            To hide the line(s)
+        kwargs
+            the parameter dictionary
+
+        Returns
+        -------
+        None
+
+        """
+        if index_line == ii_max:
+            if hide:
+                self.indexs_plot_lines = []
+            else:
+                new_indexs_to_plot: list = list(set(list(np.arange(len(self.lines_x)))) - set(self.indexs_plot_lines))
+                new_indexs_to_plot.sort()
+                self.indexs_plot_lines.extend(new_indexs_to_plot)
+            for d in self.param_lines:
+                d.update(kwargs)
+
+        elif isinstance(index_line, int | np.int64) and index_line >= len(self.param_lines):
+            raise UserWarning("Graphique.config_line : the maximum index awalible for lines is ", len(self.param_lines) - 1, index_line, "is to high")
+        elif isinstance(index_line, list | np.ndarray):
+            if isinstance(index_line[0], bool):
+                if len(index_line) != len(self.param_lines):
+                    raise UserWarning("Graphique.config_line : the size of the mask array should be equal to the sze of Graphique.param_lines")
+                for i in range(len(index_line)):
+                    if index_line[i]:
+                        self.param_lines[i].update(kwargs)
+                        if hide and i in self.indexs_plot_lines:
+                            self.indexs_plot_lines.remove(i)
+                        elif not hide and i not in self.indexs_plot_lines:
+                            self.indexs_plot_lines.append(i)
+            else:
+                if np.any(np.array(index_line) >= len(self.param_lines)):
+                    raise UserWarning("Graphique.config_line : there is at least one index higher"
+                                      " than the maximum index")
+                for i in index_line:
+                    if i < len(self.param_lines):
+                        raise UserWarning("The index ", index_line, "is not compatibe with a line liste of size ",
+                                          len(self.param_lines))
+                    if i < 0:
+                        i = len(self.param_lines) + i
+                    self.param_lines[i].update(kwargs)
+                    if hide and i in self.indexs_plot_lines:
+                        self.indexs_plot_lines.remove(i)
+                    elif not hide and i not in self.indexs_plot_lines:
+                        self.indexs_plot_lines.append(i)
+        else:
+            if index_line <= - len(self.param_lines):
+                raise UserWarning("The index ", index_line, "is not compatibe with a line liste of size ",
+                                  len(self.param_lines))
+            if index_line < 0:
+                index_line = len(self.param_lines) + index_line
+
+            if hide and index_line in self.param_lines:
+                self.indexs_plot_lines.remove(index_line)
+            elif not hide and index_line not in self.indexs_plot_lines:
+                self.indexs_plot_lines.append(index_line)
+
+            self.param_lines[index_line].update(kwargs)
+            
+    def set_style_phenigraph(self) -> None:
+        """
+        This method add a trensparent grey background for the axis self.ax and a trensparent background for the rest of
+        the Figure.
+        The top and right border (spine) of the axis are remouved
+        The linewidth of the left and below border (where the defaults x and -y axis are) are set to 2
+        The ticks size and width are increase too
+        Returns
+        -------
+
+        """
+        self.config_ax(facecolor=(180 / 255, 180 / 255, 200 / 255, 0.1))
+        self.config_spines(spine=["top", "right"], visible=False)  # Remouving the top and right limit of the plot
+        self.config_spines(spine=["bottom", "left"],
+                            lw=2)  # Setting the lineweight of the remaing borders of the figure to 2
+        self.config_ticks(width=2, length=6)  # Setting the ticks width and length
+        self.config_fig(facecolor=Ctrensp)  # Setting a trensparent background for the rest of the figure
+
+    def set_style_matplotlib(self) -> None:
+        """
+        This method reset the default matplotlib style
+        Returns
+        -------
+
+        """
+        if 'facecolor' in self.param_ax:
+            del self.param_ax['facecolor']
+        if 'facecolor' in self.param_fig:
+            del self.param_fig['facecolor']
+        self.param_spines_ax = [{}, {}, {}, {}]
+        self.ticks_param_ax = {}
+
     def dark_background(self) -> None:
         """
 
@@ -4471,17 +5547,17 @@ To display several Graphique in one, use a Multigraph
 
         """
         self.style = 'default'
-        for d in self.param_lines:
-            if "color" in d.keys() and (isinstance(d["color"], str) and d["color"] == "w"):
-                d["color"] = "k"
-        if "colors" in self.param_contours.keys():
-            for i in range(len(self.param_contours["colors"])):
-                if (isinstance(self.param_contours["colors"][i], str)
-                        and self.param_contours["colors"][i] == "w"):
-                    self.param_contours["colors"] = "k"
-        for d in self.param_polygons:
-            if "facecolor" in d.keys() and d["facecolor"] == "w":
-                d["facecolor"] = "k"
+        # for d in self.param_lines:
+        #     if "color" in d.keys() and (isinstance(d["color"], str) and d["color"] == "w"):
+        #         d["color"] = "k"
+        # if "colors" in self.param_contours.keys():
+        #     for i in range(len(self.param_contours["colors"])):
+        #         if (isinstance(self.param_contours["colors"][i], str)
+        #                 and self.param_contours["colors"][i] == "w"):
+        #             self.param_contours["colors"] = "k"
+        # for d in self.param_polygons:
+        #     if "facecolor" in d.keys() and d["facecolor"] == "w":
+        #         d["facecolor"] = "k"
 
     def plot_colorbar(self) -> None:
         """
@@ -5055,56 +6131,56 @@ To display several Graphique in one, use a Multigraph
 
             # bl, default axis
             if len(self.x_axe[0]) == 0 or self.x_axe[0][0] > -np.inf:
-                if len(self.x_axe[0]) > 0:
-                    self.ax.set_xlim([self.x_axe[0].min(), self.x_axe[0].max()])
+                # if len(self.x_axe[0]) > 0:
+                #     self.ax.set_xlim([self.x_axe[0].min(), self.x_axe[0].max()])
                 self.ax.set_xticks(self.x_axe[0])
             if len(self.labels_x_ticks[0]) == 0 or self.labels_x_ticks[0][0] != "empty":
                 self.ax.set_xticklabels(self.labels_x_ticks[0])
             if len(self.y_axe[0]) == 0 or self.y_axe[0][0] > -np.inf:
-                if len(self.y_axe[0]) > 0:
-                    self.ax.set_ylim([self.y_axe[0].min(), self.y_axe[0].max()])
+                # if len(self.y_axe[0]) > 0:
+                #     self.ax.set_ylim([self.y_axe[0].min(), self.y_axe[0].max()])
                 self.ax.set_yticks(self.y_axe[0])
             if len(self.labels_y_ticks[0]) == 0 or self.labels_y_ticks[0][0] != "empty":
                 self.ax.set_yticklabels(self.labels_y_ticks[0])
 
                 # tl
             if len(self.x_axe[1]) == 0 or self.x_axe[1][0] > -np.inf:
-                if len(self.x_axe[1]) > 0:
-                    self.ax_tl.set_xlim([self.x_axe[1].min(), self.x_axe[1].max()])
+                # if len(self.x_axe[1]) > 0:
+                #     self.ax_tl.set_xlim([self.x_axe[1].min(), self.x_axe[1].max()])
                 self.ax_tl.set_xticks(self.x_axe[1])
             if len(self.labels_x_ticks[1]) == 0 or self.labels_x_ticks[1][0] != "empty":
                 self.ax_tl.set_xticklabels(self.labels_x_ticks[1])
             if len(self.y_axe[1]) == 0 or self.y_axe[1][0] > -np.inf:
-                if len(self.y_axe[1]) > 0:
-                    self.ax_tl.set_ylim([self.y_axe[1].min(), self.y_axe[1].max()])
+                # if len(self.y_axe[1]) > 0:
+                #     self.ax_tl.set_ylim([self.y_axe[1].min(), self.y_axe[1].max()])
                 self.ax_tl.set_yticks(self.y_axe[1])
             if len(self.labels_y_ticks[1]) == 0 or self.labels_y_ticks[1][0] != "empty":
                 self.ax_tl.set_yticklabels(self.labels_y_ticks[1])
 
                 # tr
             if len(self.x_axe[2]) == 0 or self.x_axe[2][0] > -np.inf:
-                if len(self.x_axe[2]) > 0:
-                    self.ax_tr.set_xlim([self.x_axe[2].min(), self.x_axe[2].max()])
+                # if len(self.x_axe[2]) > 0:
+                #     self.ax_tr.set_xlim([self.x_axe[2].min(), self.x_axe[2].max()])
                 self.ax_tr.set_xticks(self.x_axe[2])
             if len(self.labels_x_ticks[2]) == 0 or self.labels_x_ticks[2][0] != "empty":
                 self.ax_tr.set_xticklabels(self.labels_x_ticks[2])
             if len(self.y_axe[2]) == 0 or self.y_axe[2][0] > -np.inf:
-                if len(self.y_axe[2]) > 0:
-                    self.ax_tr.set_ylim([self.y_axe[2].min(), self.y_axe[2].max()])
+                # if len(self.y_axe[2]) > 0:
+                #     self.ax_tr.set_ylim([self.y_axe[2].min(), self.y_axe[2].max()])
                 self.ax_tr.set_yticks(self.y_axe[2])
             if len(self.labels_y_ticks[2]) == 0 or self.labels_y_ticks[2][0] != "empty":
                 self.ax_tr.set_yticklabels(self.labels_y_ticks[2])
 
                 # br
             if len(self.x_axe[3]) == 0 or self.x_axe[3][0] > -np.inf:
-                if len(self.x_axe[3]) > 0:
-                    self.ax_br.set_xlim([self.x_axe[3].min(), self.x_axe[3].max()])
+                # if len(self.x_axe[3]) > 0:
+                #     self.ax_br.set_xlim([self.x_axe[3].min(), self.x_axe[3].max()])
                 self.ax_br.set_xticks(self.x_axe[3])
             if len(self.labels_x_ticks[3]) == 0 or self.labels_x_ticks[3][0] != "empty":
                 self.ax_br.set_xticklabels(self.labels_x_ticks[3])
             if len(self.y_axe[3]) == 0 or self.y_axe[3][0] > -np.inf:
-                if len(self.y_axe[3]) > 0:
-                    self.ax_br.set_ylim([self.y_axe[3].min(), self.y_axe[3].max()])
+                # if len(self.y_axe[3]) > 0:
+                #     self.ax_br.set_ylim([self.y_axe[3].min(), self.y_axe[3].max()])
                 self.ax_br.set_yticks(self.y_axe[3])
             if len(self.labels_y_ticks[3]) == 0 or self.labels_y_ticks[3][0] != "empty":
                 self.ax_br.set_yticklabels(self.labels_y_ticks[3])
@@ -5197,14 +6273,14 @@ To display several Graphique in one, use a Multigraph
             if np.any([len(self.param_lines[i]) > 0 for i in range(len(self.param_lines))]):
                 self.ax.legend(**self.param_legende)
             if len(self.x_axe) == 0 or self.x_axe[0] > -np.inf:
-                if len(self.x_axe) > 0:
-                    self.ax.set_xlim([self.x_axe.min(), self.x_axe.max()])
+                # if len(self.x_axe) > 0:
+                #     self.ax.set_xlim([self.x_axe.min(), self.x_axe.max()])
                 self.ax.set_xticks(self.x_axe)
             if len(self.labels_x_ticks) == 0 or self.labels_x_ticks[0] != "empty":
                 self.ax.set_xticklabels(self.labels_x_ticks)
             if len(self.y_axe) == 0 or self.y_axe[0] > -np.inf:
-                if len(self.y_axe) > 0:
-                    self.ax.set_ylim([self.y_axe.min(), self.y_axe.max()])
+                # if len(self.y_axe) > 0:
+                #     self.ax.set_ylim([self.y_axe.min(), self.y_axe.max()])
                 self.ax.set_yticks(self.y_axe)
             if len(self.labels_y_ticks) == 0 or self.labels_y_ticks[0] != "empty":
                 self.ax.set_yticklabels(self.labels_y_ticks)
@@ -5331,18 +6407,63 @@ To display several Graphique in one, use a Multigraph
                         - abs(self.y_axe_image[:-1]))
                 else:
                     y_axe = self.y_axe_image
+
                 if axis_config == "bl":
                     cs = self.ax.contour(x_axe, y_axe,
                                          self.array_image, levels, **params)
+                    if len(self.clabels) > 0:
+                        dic_labels: dict = {}
+                        for (n, l) in zip(self.levels, self.clabels):
+                            dic_labels[n] = l
+                        if len(self.clabels_mask) > 0:
+                            self.ax.clabel(cs, self.levels[self.clabels_mask], fmt=dic_labels,
+                                           **self.param_labels_contours)
+                        else:
+                            self.ax.clabel(cs, self.levels, fmt=dic_labels, **self.param_labels_contours)
+                    else:
+                        self.ax.clabel(cs, **self.param_labels_contours)
                 elif axis_config == "tl":
                     cs = self.ax_tl.contour(x_axe, y_axe,
                                             self.array_image, levels, **params)
+                    if len(self.clabels) > 0:
+                        dic_labels: dict = {}
+                        for (n, l) in zip(self.levels, self.clabels):
+                            dic_labels[n] = l
+                        if len(self.clabels_mask) > 0:
+                            self.ax_tl.clabel(cs, self.levels[self.clabels_mask], fmt=dic_labels,
+                                           **self.param_labels_contours)
+                        else:
+                            self.ax_tl.clabel(cs, self.levels, fmt=dic_labels, **self.param_labels_contours)
+                    else:
+                        self.ax_tl.clabel(cs, **self.param_labels_contours)
                 elif axis_config == "tr":
                     cs = self.ax_tr.contour(x_axe, y_axe,
                                             self.array_image, levels, **params)
+                    if len(self.clabels) > 0:
+                        dic_labels: dict = {}
+                        for (n, l) in zip(self.levels, self.clabels):
+                            dic_labels[n] = l
+                        if len(self.clabels_mask) > 0:
+                            self.ax_tr.clabel(cs, self.levels[self.clabels_mask], fmt=dic_labels,
+                                           **self.param_labels_contours)
+                        else:
+                            self.ax_tr.clabel(cs, self.levels, fmt=dic_labels, **self.param_labels_contours)
+                    else:
+                        self.ax_tr.clabel(cs, **self.param_labels_contours)
                 else:  # axis_config == "br"
                     cs = self.ax_br.contour(x_axe, y_axe,
                                             self.array_image, levels, **params)
+                    if len(self.clabels) > 0:
+                        dic_labels: dict = {}
+                        for (n, l) in zip(self.levels, self.clabels):
+                            dic_labels[n] = l
+                        if len(self.clabels_mask) > 0:
+                            self.ax_br.clabel(cs, self.levels[self.clabels_mask], fmt=dic_labels,
+                                           **self.param_labels_contours)
+                        else:
+                            self.ax_br.clabel(cs, self.levels, fmt=dic_labels, **self.param_labels_contours)
+                    else:
+                        self.ax_br.clabel(cs, **self.param_labels_contours)
             else:
                 if axis_config == "bl":
                     cs = self.ax.contour(self.x_axe_contours, self.y_axe_contours,
@@ -5463,6 +6584,7 @@ To display several Graphique in one, use a Multigraph
         with (mpl.rc_context(param_font)):
             self.param_ax["title"] = self.title
             if self.fig is None:
+                # self.fig = plt.figure(layout='constrained')
                 self.fig = plt.figure()
             if len(self.param_fig) > 0:
                 self.fig.set(**self.param_fig)
@@ -5497,6 +6619,15 @@ To display several Graphique in one, use a Multigraph
                                     for dic in self.param_polygons]))):
                 self.ax_tl = self.ax.twiny()
                 self.ax_tl.set(**self.param_ax_tl)
+                self.ax_tl.spines["bottom"].set(**self.param_spines_ax_tl[0])
+                self.ax_tl.spines["left"].set(**self.param_spines_ax_tl[1])
+                self.ax_tl.spines["top"].set(**self.param_spines_ax_tl[2])
+                self.ax_tl.spines["right"].set(**self.param_spines_ax_tl[3])
+                if len(self.ticks_param_ax_tl[0]) > 0:
+                    self.ax_tl.tick_params(axis="x", **self.ticks_param_ax_tl[0])
+                if len(self.ticks_param_ax_tl[1]) > 0:
+                    self.ax_tl.tick_params(axis="y", **self.ticks_param_ax_tl[1])
+
             if (self.ax_br is None
                     and (np.any(["axis_config" in dic.keys() and dic["axis_config"] == "br"
                                  for dic in np.array(self.param_lines)[index]])
@@ -5506,77 +6637,103 @@ To display several Graphique in one, use a Multigraph
                                     for dic in self.param_polygons]))):
                 self.ax_br = self.ax.twinx()
                 self.ax_br.set(**self.param_ax_br)
+                self.ax_br.spines["bottom"].set(**self.param_spines_ax_br[0])
+                self.ax_br.spines["left"].set(**self.param_spines_ax_br[1])
+                self.ax_br.spines["top"].set(**self.param_spines_ax_br[2])
+                self.ax_br.spines["right"].set(**self.param_spines_ax_br[3])
+
+                if len(self.ticks_param_ax_br[0]) > 0:
+                    self.ax_br.tick_params(axis="x", **self.ticks_param_ax_br[0])
+                if len(self.ticks_param_ax_br[1]) > 0:
+                    self.ax_br.tick_params(axis="y", **self.ticks_param_ax_br[1])
+
             if (self.ax_tr is None
-                and (np.any(["axis_config" in dic.keys() and dic["axis_config"] == "tr"
-                            for dic in np.array(self.param_lines)[index]])
-                    or "axis_config" in self.param_image and self.param_image["axis_config"] == "tr"
-                    or "axis_config" in self.param_contours and self.param_contours["axis_config"] == "tr"
-                    or np.any(["axis_config" in dic.keys() and dic["axis_config"] == "tr"
-                               for dic in self.param_polygons]))):
+                    and (np.any(["axis_config" in dic.keys() and dic["axis_config"] == "tr"
+                                 for dic in np.array(self.param_lines)[index]])
+                         or "axis_config" in self.param_image and self.param_image["axis_config"] == "tr"
+                         or "axis_config" in self.param_contours and self.param_contours["axis_config"] == "tr"
+                         or np.any(["axis_config" in dic.keys() and dic["axis_config"] == "tr"
+                                    for dic in self.param_polygons]))):
                 if self.ax_br is None:
                     self.ax_br = self.ax.twinx()
-                    self.ax_br.set_visible(False)
+                    # self.ax_br.set_visible(False)
                 self.ax_tr = self.ax_br.twiny()
                 self.ax_tr.set(**self.param_ax_tr)
+                self.ax_tr.spines["bottom"].set(**self.param_spines_ax_tr[0])
+                self.ax_tr.spines["left"].set(**self.param_spines_ax_tr[1])
+                self.ax_tr.spines["top"].set(**self.param_spines_ax_tr[2])
+                self.ax_tr.spines["right"].set(**self.param_spines_ax_tr[3])
+                if len(self.ticks_param_ax_tr[0]) > 0:
+                    self.ax_tr.tick_params(axis="x", **self.ticks_param_ax_tr[0])
+                if len(self.ticks_param_ax_tr[1]) > 0:
+                    self.ax_tr.tick_params(axis="y", **self.ticks_param_ax_tr[1])
 
             if len(self.param_ax) > 0:
                 args = self.param_ax.copy()
                 if "projection" in args:
                     del args["projection"]
                 self.ax.set(**args)
+                self.ax.spines["bottom"].set(**self.param_spines_ax[0])
+                self.ax.spines["left"].set(**self.param_spines_ax[1])
+                self.ax.spines["top"].set(**self.param_spines_ax[2])
+                self.ax.spines["right"].set(**self.param_spines_ax[3])
+                if len(self.ticks_param_ax[0]) > 0:
+                    self.ax.tick_params(axis="x", **self.ticks_param_ax[0])
+                if len(self.ticks_param_ax[1]) > 0:
+                    self.ax.tick_params(axis="y", **self.ticks_param_ax[1])
 
             if len(self.x_axe[0]) == 0 or self.x_axe[0][0] > -np.inf:
-                if len(self.x_axe[0]) > 0:
-                    self.ax.set_xlim([self.x_axe[0].min(), self.x_axe[0].max()])
+                # if len(self.x_axe[0]) > 0:
+                #     self.ax.set_xlim([self.x_axe[0].min(), self.x_axe[0].max()])
                 self.ax.set_xticks(self.x_axe[0])
             if len(self.labels_x_ticks[0]) == 0 or self.labels_x_ticks[0][0] != "empty":
                 self.ax.set_xticklabels(self.labels_x_ticks[0])
             if len(self.y_axe[0]) == 0 or self.y_axe[0][0] > -np.inf:
-                if len(self.y_axe[0]) > 0:
-                    self.ax.set_ylim([self.y_axe[0].min(), self.y_axe[0].max()])
+                # if len(self.y_axe[0]) > 0:
+                #     self.ax.set_ylim([self.y_axe[0].min(), self.y_axe[0].max()])
                 self.ax.set_yticks(self.y_axe[0])
             if len(self.labels_y_ticks[0]) == 0 or self.labels_y_ticks[0][0] != "empty":
                 self.ax.set_yticklabels(self.labels_y_ticks[0])
-                
+
             if len(self.x_axe[1]) == 0 or self.x_axe[1][0] > -np.inf:
-                if len(self.x_axe[1]) > 0:
-                    self.ax_tl.set_xlim([self.x_axe[1].min(), self.x_axe[1].max()])
+                # if len(self.x_axe[1]) > 0:
+                #     self.ax_tl.set_xlim([self.x_axe[1].min(), self.x_axe[1].max()])
                 self.ax_tl.set_xticks(self.x_axe[1])
             if len(self.labels_x_ticks[1]) == 0 or self.labels_x_ticks[1][0] != "empty":
                 self.ax_tl.set_xticklabels(self.labels_x_ticks[1])
             if len(self.y_axe[1]) == 0 or self.y_axe[1][0] > -np.inf:
-                if len(self.y_axe[0]) > 0:
-                    self.ax_tl.set_ylim([self.y_axe[1].min(), self.y_axe[1].max()])
+                # if len(self.y_axe[0]) > 0:
+                #     self.ax_tl.set_ylim([self.y_axe[1].min(), self.y_axe[1].max()])
                 self.ax_tl.set_yticks(self.y_axe[1])
             if len(self.labels_y_ticks[1]) == 0 or self.labels_y_ticks[1][0] != "empty":
                 self.ax_tl.set_yticklabels(self.labels_y_ticks[1])
-                   
+
             if len(self.x_axe[2]) == 0 or self.x_axe[2][0] > -np.inf:
-                if len(self.x_axe[2]) > 0:
-                    self.ax_tr.set_xlim([self.x_axe[2].min(), self.x_axe[2].max()])
+                # if len(self.x_axe[2]) > 0:
+                #     self.ax_tr.set_xlim([self.x_axe[2].min(), self.x_axe[2].max()])
                 self.ax_tr.set_xticks(self.x_axe[2])
             if len(self.labels_x_ticks[2]) == 0 or self.labels_x_ticks[2][0] != "empty":
                 self.ax_tr.set_xticklabels(self.labels_x_ticks[2])
             if len(self.y_axe[2]) == 0 or self.y_axe[2][0] > -np.inf:
-                if len(self.y_axe[0]) > 0:
-                    self.ax_tr.set_ylim([self.y_axe[2].min(), self.y_axe[2].max()])
+                # if len(self.y_axe[0]) > 0:
+                #     self.ax_tr.set_ylim([self.y_axe[2].min(), self.y_axe[2].max()])
                 self.ax_tr.set_yticks(self.y_axe[2])
             if len(self.labels_y_ticks[2]) == 0 or self.labels_y_ticks[2][0] != "empty":
                 self.ax_tr.set_yticklabels(self.labels_y_ticks[2])
-                
+
             if len(self.x_axe[3]) == 0 or self.x_axe[3][0] > -np.inf:
-                if len(self.x_axe[3]) > 0:
-                    self.ax_br.set_xlim([self.x_axe[3].min(), self.x_axe[3].max()])
+                # if len(self.x_axe[3]) > 0:
+                #     self.ax_br.set_xlim([self.x_axe[3].min(), self.x_axe[3].max()])
                 self.ax_br.set_xticks(self.x_axe[3])
             if len(self.labels_x_ticks[3]) == 0 or self.labels_x_ticks[3][0] != "empty":
                 self.ax_br.set_xticklabels(self.labels_x_ticks[3])
             if len(self.y_axe[3]) == 0 or self.y_axe[3][0] > -np.inf:
-                if len(self.y_axe[0]) > 0:
-                    self.ax_br.set_ylim([self.y_axe[3].min(), self.y_axe[3].max()])
+                # if len(self.y_axe[0]) > 0:
+                #     self.ax_br.set_ylim([self.y_axe[3].min(), self.y_axe[3].max()])
                 self.ax_br.set_yticks(self.y_axe[3])
             if len(self.labels_y_ticks[3]) == 0 or self.labels_y_ticks[3][0] != "empty":
                 self.ax_br.set_yticklabels(self.labels_y_ticks[3])
-                
+
             if self.title != "":
                 self.ax.set_title(self.title)
 
@@ -5593,6 +6750,23 @@ To display several Graphique in one, use a Multigraph
             if len(self.lines_t_x) > 0:
                 self.plot_texts()
 
+            # if (np.any(["label" in dic.keys()
+            #             for dic in np.array(self.param_lines)[index]])
+            #         or np.any(["label" in dic for dic in self.param_histogrammes])
+            #         or np.any(["label" in dic.keys()
+            #                    for dic in self.param_polygons])):
+            #     param_legend = self.param_legende.copy()
+            #     if "loc" not in param_legend.keys():
+            #         param_legend["loc"] = "outside right upper"
+            #         # param_legend["loc"] = "outside lower right"
+            #         # param_legend["loc"] = "lower right"
+            #     if 'draggable' not in param_legend.keys():
+            #         param_legend["draggable"] = True
+            #     self.fig.get_constrained_layout()
+            #     self.fig.legend(**param_legend)
+            param_legend = self.param_legende.copy()
+            if 'draggable' not in param_legend.keys():
+                param_legend["draggable"] = True
             if (np.any(["label" in dic.keys() and ("axis_config" not in dic.keys()
                                                    or dic["axis_config"] == "bl")
                         for dic in np.array(self.param_lines)[index]])
@@ -5600,28 +6774,28 @@ To display several Graphique in one, use a Multigraph
                     or np.any(["label" in dic.keys() and ("axis_config" not in dic.keys()
                                                           or dic["axis_config"] == "bl")
                                for dic in self.param_polygons])):
-                self.ax.legend(**self.param_legende)
+                self.ax.legend(**param_legend)
 
             if (np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "tl"
                         for dic in np.array(self.param_lines)[index]])
                     or np.any(["label" in dic for dic in self.param_histogrammes])
                     or np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "tl"
                                for dic in self.param_polygons])):
-                self.ax_tl.legend(**self.param_legende)
+                self.ax_tl.legend(**param_legend)
 
             if (np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "tr"
                         for dic in np.array(self.param_lines)[index]])
                     or np.any(["label" in dic for dic in self.param_histogrammes])
                     or np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "tr"
                                for dic in self.param_polygons])):
-                self.ax_tr.legend(**self.param_legende)
+                self.ax_tr.legend(**param_legend)
 
             if (np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "br"
                         for dic in np.array(self.param_lines)[index]])
                     or np.any(["label" in dic for dic in self.param_histogrammes])
                     or np.any(["label" in dic.keys() and "axis_config" in dic.keys() and dic["axis_config"] == "br"
                                for dic in self.param_polygons])):
-                self.ax_br.legend(**self.param_legende)
+                self.ax_br.legend(**param_legend)
 
             self.ax.grid(self.grid)
 
@@ -5785,7 +6959,8 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         show: bool = True, hide: bool = False, axis_config: str = "bl", **kwargs) -> Graphique:
+         show: bool = True, hide: bool = False, axis_config: str = "bl", set_phenigraph_style: bool = True,
+         **kwargs) -> Graphique:
     """
     Equivalent to plt.plot
 
@@ -5817,6 +6992,8 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
+    set_phenigraph_style : bool, optional, default=True
+        Wheather to set or not the phenigraph style to the Graphique
 
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
@@ -5860,7 +7037,7 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
     --------
     >>> x = np.linspace(0, 10, 1000)
     >>> alpha = np.linspace(1, 5, 10)
-    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=C1, col_max=C2)
     >>> gr = line(x, [x*a for a in alpha], color=colors)
     >>> gr.customized_cmap(alpha, colors)
     >>> gr.show()
@@ -5869,9 +7046,10 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.line(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                scale_z=scale_z, kwargs_colorbar=kwargs_colorbar, hide=hide, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -5879,7 +7057,8 @@ def line(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
              marker: str = "", scale: str = "", show: bool = True, hide: bool = False,
-             axis_config: str = "bl", **kwargs: dict) -> Graphique:
+             axis_config: str = "bl", set_phenigraph_style: bool = True,
+             **kwargs: dict) -> Graphique:
     """
     Equivalent to plt.errorbar
 
@@ -5914,6 +7093,8 @@ def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarra
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
+    set_phenigraph_style : bool, optional=True, default=True
+        Whether to set or not the phenigraph style to the Graphique
 
     kwargs
         Additional argument to plot() function like linestyle, color....
@@ -5927,8 +7108,9 @@ def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarra
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.errorbar(x=x, y=y, err_y=err_y, marker=marker, scale=scale, hide=hide, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -5936,7 +7118,7 @@ def errorbar(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarra
 
 def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarray,
               marker: str = "", scale: str = "", show: bool = True, hide: bool = False,
-              axis_config: str = "bl", **kwargs: dict) -> Graphique:
+              axis_config: str = "bl", set_phenigraph_style: bool = True, **kwargs: dict) -> Graphique:
     """
     Equivalent to plt.errorbar but the error is not represented by errorbars but by a
     uniform-colored polygon
@@ -5964,15 +7146,16 @@ def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarr
     hide: bool, optional, default=False
         If True then the new line(s) is/are not plotted with the Graphique.
         To plot them, then change the plot order with self.set_indexs_plot_lines
-    kwargs
-        Additional argument to plot() function like linestyle, color....
     axis_config : str, optional, {"bl", "tl", "br", "tr"}, default="bl"
         The positions of x-y axis :
             - "bl" is x-axis on the bottom, y-axis on the left (default).
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
-
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
+    kwargs
+        Additional argument to plot() function like linestyle, color....
 
     Returns
     -------
@@ -5983,8 +7166,9 @@ def errorplot(x: list | np.ndarray, y: list | np.ndarray, err_y: list | np.ndarr
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.errorplot(x=x, y=y, err_y=err_y, marker=marker, scale=scale, hide=hide, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6045,7 +7229,7 @@ def polar(r: list | np.ndarray, theta: list | np.ndarray,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=False)
     graph.polar(r=r, theta=theta, z=z, marker=marker, share_colorbar=share_colorbar,
                 scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
     if show:
@@ -6057,7 +7241,8 @@ def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
            z: np.ndarray | list | None = None,
            marker: str | list = "", share_colorbar: bool = False,
            scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-           axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+           axis_config: str = "bl", show: bool = True, hide: bool = False, set_phenigraph_style: bool = True,
+           **kwargs) -> Graphique:
     """
     Equivalent to line with a logarithmique scale for both x and y-axis:
 
@@ -6089,7 +7274,8 @@ def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
-
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
 
@@ -6132,7 +7318,7 @@ def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
     --------
     >>> x = np.linspace(0, 10, 1000)
     >>> alpha = np.linspace(1, 5, 10)
-    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=g.C1, col_max=g.C2)
+    >>> colors = linear_color_interpolation(np.arange(len(alpha)), col_min=C1, col_max=C2)
     >>> gr: Graphique = loglog(x, [x*a for a in alpha], color=colors)
     >>> gr.customized_cmap(alpha, colors)
     >>> gr.show()
@@ -6141,9 +7327,10 @@ def loglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.loglog(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                  scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6153,7 +7340,8 @@ def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
               z: np.ndarray | list | None = None,
               marker: str | list = "", share_colorbar: bool = False,
               scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-              axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+              axis_config: str = "bl", show: bool = True, hide: bool = False, set_phenigraph_style: bool = True,
+              **kwargs) -> Graphique:
     """
     Equivalent to line with a logarithmique scale for both x and y-axis
     Both the negative and positive parts of y are represanted:
@@ -6187,6 +7375,8 @@ def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
 
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
 
@@ -6240,9 +7430,10 @@ def symloglog(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.symloglog(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                     scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6252,7 +7443,8 @@ def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+         axis_config: str = "bl", show: bool = True, hide: bool = False,
+         set_phenigraph_style: bool = True, **kwargs) -> Graphique:
     """
     Equivalent to line with a logarithmique scale for x-axis:
 
@@ -6284,6 +7476,8 @@ def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
 
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
@@ -6338,9 +7532,10 @@ def logx(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.logx(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6350,7 +7545,8 @@ def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
             marker: str | list = "", share_colorbar: bool = False,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-            axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+            axis_config: str = "bl", show: bool = True, hide: bool = False,
+            set_phenigraph_style: bool = True, **kwargs) -> Graphique:
     """
     Equivalent to line with a logarithmique scale for both x-axis (both negative and positive
     part are represanted):
@@ -6383,7 +7579,8 @@ def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
-
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
 
@@ -6437,9 +7634,10 @@ def symlogx(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.symlogx(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                   scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6449,7 +7647,8 @@ def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
          z: np.ndarray | list | None = None,
          marker: str | list = "", share_colorbar: bool = False,
          scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-         axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+         axis_config: str = "bl", show: bool = True, hide: bool = False,
+         set_phenigraph_style: bool = True, **kwargs) -> Graphique:
     """
 
     Equivalent to line with a logarithmique scale for y-axis:
@@ -6482,7 +7681,8 @@ def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
-
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
 
@@ -6535,9 +7735,10 @@ def logy(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.logy(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6547,7 +7748,8 @@ def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
             z: np.ndarray | list | None = None,
             marker: str | list = "", share_colorbar: bool = False,
             scale_z: str = "linear", kwargs_colorbar: dict | None = None,
-            axis_config: str = "bl", show: bool = True, hide: bool = False, **kwargs) -> Graphique:
+            axis_config: str = "bl", show: bool = True, hide: bool = False,
+            set_phenigraph_style: bool = True, **kwargs) -> Graphique:
     """
     Equivalent to line with a logarithmique scale for y-axis (both positive and negative
     part are represanted):
@@ -6580,7 +7782,8 @@ def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
             - "tl" is x-axis on the top, y-axis on the left.
             - "br" is x-axis on the bottom, y-axis on the right.
             - "tr" is x-axis on the top, y-axis on the right.
-
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs, optional
         Additional argument to plot() function like linestyle, color....
 
@@ -6632,9 +7835,10 @@ def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.symlogy(x, y, z=z, marker=marker, share_colorbar=share_colorbar,
                   scale_z=scale_z, hide=hide, kwargs_colorbar=kwargs_colorbar, axis_config=axis_config, **kwargs)
+
     if show:
         graph.show()
     return graph
@@ -6642,7 +7846,7 @@ def symlogy(x: np.ndarray | list, y: np.ndarray | list | None = None,
 
 def histogram(values: np.ndarray, weights: np.ndarray | None = None,
               normalization: bool = True, statistic: str = 'sum', bins: int = 10,
-              show: bool = True, **args) -> Graphique:
+              show: bool = True, set_phenigraph_style: bool = True, **args) -> Graphique:
     """
     Plot the histogram of values
 
@@ -6673,6 +7877,8 @@ def histogram(values: np.ndarray, weights: np.ndarray | None = None,
         Additionals argument for `sp.binned_statistic`
     show : bool, optional, default = True
         To show the Graphique
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs
          Additionals argument for plt.bars
 
@@ -6688,29 +7894,36 @@ def histogram(values: np.ndarray, weights: np.ndarray | None = None,
     """
     if weights is None:
         poids = []
-    graph: Graphique = Graphique()
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
     graph.histogram(
         values=values, weights=weights, normalization=normalization, statistic=statistic,
         bins=bins, **args)
+
     if show:
         graph.show()
     return graph
 
 
 def image(array_image: np.ndarray,
-          x_axe: list | np.ndarray = None, y_axe: list | np.ndarray = None,
-          axis_config: str = "bl", show: bool = True, **args) -> Graphique:
+          x_axe: list | np.ndarray | None = None, y_axe: list | np.ndarray | None = None,
+          colorscale: str = "linear",
+          cmap: str = "default", colorbar_ticks: list | np.ndarray | None = None,
+          colorbar_label: str = "", kwargs_colorbar: dict | None = None,
+          colorbar_index: int = ii_max, color_min: str | tuple = None, color_max: str | tuple = None,
+          vmin: np.float64 = -np.inf, vmax: np.float64 = np.inf, axis_config: str = "bl",
+          show: bool = True, set_phenigraph_style: bool = True,
+          **kwargs) -> Graphique:
     """
 
     Plot the array image through plt.pcolor or plt.imshow for 3 color images
 
     Parameters
     ----------
-    array_image : np.ndarray
-        The matrix (2D, or 3D for colored images (the color is on the third axis)) to be plotted
-    x_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[0])
+     array_image : np.ndarray
+            The matrix (2D, or 3D for colored images (the color is on the third axis)) to be plotted
+    x_axe : list | np.ndarray, optional, default=np.arange(0,array_image.shape[0])
         The x-axes coordinate (for the array), only for 2d array_image
-    y_axe : list | np.ndarray, optional, default=np.linespace(0,array_image.shape[1])
+    y_axe : list | np.ndarray, optional, default=np.arange(0,array_image.shape[1])
         The y-axes coordinate (for the array), only for 2d array_image
     colorscale : str, optional, default="linear", {"linear", "log", "symlog"}
         The scale for the colorbar
@@ -6722,6 +7935,7 @@ def image(array_image: np.ndarray,
         The colorbar's label
     kwargs_colorbar : dict, optional
         Additional arguments for the colorbar :
+
             - location: str, {'right', 'top', 'bottom', 'left'}
                 Indicate where the colorbar should be plotted
             - scale: str, {'linear', 'log', 'symlog'}
@@ -6754,6 +7968,9 @@ def image(array_image: np.ndarray,
 
     show : bool, optional, default = True
         To show the Graphique
+
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs
         Additionals arguments for pcolor
 
@@ -6775,8 +7992,11 @@ def image(array_image: np.ndarray,
     if axis_config not in ["bl", "tl", "tr", "br"]:
         raise UserWarning("""The axis configuration can only be "bl", "tl"; "tr" or "br", not """, axis_config)
 
-    graph: Graphique = Graphique()
-    graph.image(array_image=array_image, x_axe=x_axe, y_axe=y_axe, axis_config=axis_config, **args)
+    graph: Graphique = Graphique(set_phenigraph_style=set_phenigraph_style)
+    graph.image(array_image=array_image, x_axe=x_axe, y_axe=y_axe, colorscale=colorscale, cmap=cmap,
+                colorbar_ticks=colorbar_ticks, colorbar_label=colorbar_label, kwargs_colorbar=kwargs_colorbar,
+                colorbar_index=colorbar_index, color_min=color_min, color_max=color_max, vmin=vmin, vmax=vmax,
+                axis_config=axis_config, **kwargs)
     if show:
         graph.show()
     return graph
@@ -6786,7 +8006,7 @@ def level_surface(x: np.ndarray | list, y: np.ndarray | list,
                   vals: np.ndarray | list, npix_x: int = 400, npix_y: int = 400,
                   logx: bool = False, logy: bool = False,
                   method: str = 'cubic', log_vals: bool = False, axis_config: str = "bl",
-                  show: bool = True, **kwargs) -> Graphique:
+                  show: bool = True, set_phenigraph_style: bool = True, **kwargs) -> Graphique:
     """
 
     Returns an image representing the 2d contour line associated with the points
@@ -6827,6 +8047,9 @@ def level_surface(x: np.ndarray | list, y: np.ndarray | list,
 
     show : bool, optional, default = True
         To show the Graphique (default=True)
+
+    set_phenigraph_style : bool, optional=True, default=True
+        Wheather to set or not the phenigraph style to the Graphique
     kwargs
         dictionaries of complementary arguments to images
         
@@ -6858,7 +8081,7 @@ def level_surface(x: np.ndarray | list, y: np.ndarray | list,
         tab: np.ndarray = griddata(points, vals, xi=(xi_x, xi_y), method=method)
 
     res: Graphique = image(tab, x_int, y_int, shading='nearest', show=False, axis_config=axis_config,
-                           **kwargs)
+                           set_phenigraph_style=set_phenigraph_style, **kwargs)
     res.config_colorbar(scale="log")
     if show:
         res.show()
